@@ -103,7 +103,7 @@ main(void)
 	ip = (Int*)n;
 	while(ip != NULL) {
 		printf("Val is %d\n", ip->i);
-		ip = (Int*)avlnext((Avl*)ip);
+		ip = (Int*)avlnext(&ip->a);
 	}
 
 	printf("Balance check:\n");
