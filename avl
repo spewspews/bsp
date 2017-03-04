@@ -1,0 +1,126 @@
+.TH AVL 2
+.SH NAME
+avlcreate,
+avlinsert,
+avldelete,
+avllookup,
+avlnext,
+avlprev \- Balanced binary search tree routines
+.SH SYNOPSIS
+.ta 0.75i 1.5i 2.25i 3i 3.75i 4.5i
+.\" .ta 0.7i +0.7i +0.7i +0.7i +0.7i +0.7i +0.7i
+.EX
+#include <avl.h>
+
+typedef struct Avl Avl;
+typedef struct Avltree Avltree;
+
+struct Avl {
+	Avl *c[2];      /* children */
+	Avl *p;	        /* parent */
+	int8_t balance;  /* balance factor */
+};
+struct Avltree {
+	int (*cmp)(Avl*, Avl*);
+	Avl *root;
+};
+
+Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
+Avl     *avlinsert(Avltree *tree, Avl *new);
+Avl     *avldelete(Avltree *tree, Avl *key);
+Avl     *avllookup(Avltree *tree, Avl *key);
+Avl     *avlnext(Avl *n);
+Avl     *avlprev(Avl *n);
+
+.EE
+.SH DESCRIPTION
+These routines allow creation and maintenance of in-memory balanced
+binary search trees.
+.PP
+An empty tree is created by calling
+.I avlcreate
+with a comparison function as an argument.
+The comparison function must take two pointers to
+.B Avl
+structures and return an integer less than, equal to, or
+greater than 0 as the first is
+respectively less than,
+equal to, or greater than the second.
+.PP
+.I Avlinsert
+adds a new
+node into the tree and returns an existing
+node with the same key that has been removed
+from the tree and may be freed.
+.I Avllookup
+returns the
+node that matches the key or
+.B nil
+if no node matches.
+.I Avldelete
+removes the node matching the key from the tree and returns
+it. It returns nil of no matching key is found.
+.PP
+.I Avlnext
+returns the next 
+.B Avl 
+node in an in-order walk of the AVL tree
+and
+.I avlprev
+returns the previous node.
+.SH EXAMPLES
+Intended usage is to embed the
+.B Avl
+structure.
+For example, the following implements a key-value store
+with strings as keys and integers as values.
+.IP
+.EX
+typedef struct Node {
+	Avl avl;
+	char *key;
+	int val;
+} Node;
+
+int
+nodecmp(Avl *a, Avl *b)
+{
+	Node *na, *nb;
+
+	na = (Node*)a;
+	nb = (Node*)b;
+	return strcmp(a->key, b->key);
+}
+
+int
+put(Avltree *t, char *key, int val)
+{
+	Node *n;
+
+	n = malloc(sizeof(*n));
+	n->key = key;
+	n->val = val;
+	avlinsert(t, &n->avl);
+}
+
+int
+get(Avltree *t, char *key)
+{
+	Node *h, n;
+
+	n.key = key;
+	h = (Node*)avllookup(t, &n->avl);
+	return h ? h->val : -1;
+}
+\fI\&...\fP
+	Avltree *t = avlcreate(nodecmp);
+
+.EE
+.SH SEE ALSO
+.nf
+Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
+.SH DIAGNOSTICS
+.I Avlcreate
+returns nil on error.
+.SH HISTORY
+This implementation was written for 9front (Dec, 2016).
