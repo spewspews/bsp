@@ -1,4 +1,4 @@
-.TH AVL 2
+.TH AVL 3
 .SH NAME
 avlcreate,
 avlinsert,
