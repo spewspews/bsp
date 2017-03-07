@@ -3,7 +3,10 @@ CC=clang
 
 avltest: avltest.o
 
+man:
+	man -l avl
+
 clean:
 	rm -f *.o avltest
 
-.PHONY: clean
+.PHONY: clean man
