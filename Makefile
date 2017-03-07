@@ -1,12 +1,9 @@
 CFLAGS=-Wall -Wpedantic -Wextra -O2 -std=c11 -g
 CC=clang
 
-libavl.a: avl.o
-	$(AR) $(ARFLAGS) $@ $^
-
-avltest: avltest.o libavl.a
+avltest: avltest.o
 
 clean:
-	rm -f *.o libavl.a avltest
+	rm -f *.o avltest
 
 .PHONY: clean

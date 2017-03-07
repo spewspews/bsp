@@ -55,7 +55,7 @@ check(Avl *n)
 	dl = depth(n->c[0]);
 	dr = depth(n->c[1]);
 	b = dr - dl;
-	printf("Real balance is %d\n", b);
+	printf("Actual balance is %d\n", b);
 	assert(b == n->balance);
 }
 
