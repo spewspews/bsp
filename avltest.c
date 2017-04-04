@@ -1,10 +1,11 @@
 #define _XOPEN_SOURCE
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <assert.h>
+#define SPEW_AVL_IMPLEMENTATION
 #include "avl.h"
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 typedef struct Int Int;
 struct Int {

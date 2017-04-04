@@ -1,7 +1,15 @@
-#include <stdint.h>
+#ifndef __SPEW_AVL_H_INCLUDE
+#define __SPEW_AVL_H_INCLUDE
+
 #include <assert.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 /* See Knuth Volume 3, 6.2.3 */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct Avl Avl;
 typedef struct Avltree Avltree;
@@ -23,6 +31,10 @@ Avl *avldelete(Avltree*, Avl*);
 Avl *avlinsert(Avltree*, Avl*);
 Avl *avlnext(Avl*);
 Avl *avlprev(Avl*);
+
+#endif // __SPEW_AVL_H_INCLUDE
+
+#ifdef SPEW_AVL_IMPLEMENTATION
 
 Avltree*
 avlcreate(int (*cmp)(Avl*, Avl*))
@@ -320,3 +332,5 @@ walk1(int a, Avl *q)
 		q = p;
 	return p;
 }
+
+#endif // SPEW_AVL_IMPLEMENTATION
