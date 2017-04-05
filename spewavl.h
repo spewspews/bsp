@@ -157,6 +157,14 @@ before the '#include "spewavl.h"' line.
                       return 1;
                }
 
+                int
+                main(void)
+                {
+                        Avltree t;
+                        avlinit(&t, nodecmp);
+                        exit(0);
+                }
+
      SEE ALSO
           Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
 
