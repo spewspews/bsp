@@ -57,7 +57,7 @@ check(Avl *n)
 	dr = depth(n->c[1]);
 	b = dr - dl;
 	printf("Actual balance is %d\n", b);
-	assert(b == n->balance);
+	assert(b == n->b);
 }
 
 void
@@ -81,7 +81,7 @@ checkbalance(Avltree *t)
 int
 main(void)
 {
-	Avltree *t;
+	Avltree t;
 	Avl *n;
 	Int *ip;
 
@@ -92,11 +92,11 @@ main(void)
 		printf("Inserting %d\n", ip->i);
 	}
 
-	t = avlcreate(Intcmp);
+	avlinit(&t, Intcmp);
 	for(ip = pool; ip < pool+nelem(pool); ip++)
-		avlinsert(t, &ip->a);
+		avlinsert(&t, &ip->a);
 
-	n = t->root;
+	n = t.root;
 	while(n->c[0] != NULL)
 		n = n->c[0];
 
@@ -108,7 +108,7 @@ main(void)
 	}
 
 	printf("Balance check:\n");
-	checkbalance(t);
+	checkbalance(&t);
 
 	exit(0);
 }

@@ -17,7 +17,7 @@ typedef struct Avltree Avltree;
 struct Avl {
 	Avl *c[2];
 	Avl *p;
-	int8_t balance;
+	int8_t b;
 };
 
 struct Avltree {
@@ -26,6 +26,7 @@ struct Avltree {
 };
 
 Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
+Avltree *avlinit(Avltree*, int(*cmp)(Avl*, Avl*));
 Avl *avllookup(Avltree*, Avl*);
 Avl *avldelete(Avltree*, Avl*);
 Avl *avlinsert(Avltree*, Avl*);
@@ -49,6 +50,18 @@ avlcreate(int (*cmp)(Avl*, Avl*))
 	t->root = NULL;
 	return t;
 }
+
+Avltree*
+avlinit(Avltree *t, int (*cmp)(Avl*, Avl*))
+{
+	if(t == NULL)
+		return NULL;
+
+	t->cmp = cmp;
+	t->root = NULL;
+	return t;
+}
+
 
 Avl*
 avllookup(Avltree *t, Avl *k)
@@ -96,7 +109,7 @@ insert(int (*cmp)(Avl*, Avl*), Avl *p, Avl **qp, Avl *k, Avl **oldp)
 	if(q == NULL) {
 		k->c[0] = NULL;
 		k->c[1] = NULL;
-		k->balance = 0;
+		k->b = 0;
 		k->p = p;
 		*qp = k;
 		return 1;
@@ -129,15 +142,15 @@ insertfix(int c, Avl **t)
 	Avl *s;
 
 	s = *t;
-	if(s->balance == 0) {
-		s->balance = c;
+	if(s->b == 0) {
+		s->b = c;
 		return 1;
 	}
-	if(s->balance == -c) {
-		s->balance = 0;
+	if(s->b == -c) {
+		s->b = 0;
 		return 0;
 	}
-	if(s->c[(c+1)/2]->balance == c)
+	if(s->c[(c+1)/2]->b == c)
 		s = singlerot(c, s);
 	else
 		s = doublerot(c, s);
@@ -227,22 +240,22 @@ deletefix(int c, Avl **t)
 	int a;
 
 	s = *t;
-	if(s->balance == 0) {
-		s->balance = c;
+	if(s->b == 0) {
+		s->b = c;
 		return 0;
 	}
-	if(s->balance == -c) {
-		s->balance = 0;
+	if(s->b == -c) {
+		s->b = 0;
 		return 1;
 	}
 	a = (c+1)/2;
-	if(s->c[a]->balance == 0) {
+	if(s->c[a]->b == 0) {
 		s = rotate(c, s);
-		s->balance = -c;
+		s->b = -c;
 		*t = s;
 		return 0;
 	}
-	if(s->c[a]->balance == c)
+	if(s->c[a]->b == c)
 		s = singlerot(c, s);
 	else
 		s = doublerot(c, s);
@@ -253,9 +266,9 @@ deletefix(int c, Avl **t)
 static Avl*
 singlerot(int c, Avl *s)
 {
-	s->balance = 0;
+	s->b = 0;
 	s = rotate(c, s);
-	s->balance = 0;
+	s->b = 0;
 	return s;
 }
 
@@ -272,15 +285,15 @@ doublerot(int c, Avl *s)
 	assert(r->p == p);
 	assert(s->p == p);
 
-	if(p->balance == c) {
-		s->balance = -c;
-		r->balance = 0;
-	} else if(p->balance == -c) {
-		s->balance = 0;
-		r->balance = c;
+	if(p->b == c) {
+		s->b = -c;
+		r->b = 0;
+	} else if(p->b == -c) {
+		s->b = 0;
+		r->b = c;
 	} else
-		s->balance = r->balance = 0;
-	p->balance = 0;
+		s->b = r->b = 0;
+	p->b = 0;
 	return p;
 }
 
