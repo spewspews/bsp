@@ -7,7 +7,6 @@
 #ifndef __SPEW_AVL_H_INCLUDE
 #define __SPEW_AVL_H_INCLUDE
 
-#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -293,8 +292,6 @@ doublerot(int c, Avl *s)
 	r = s->c[a];
 	s->c[a] = rotate(-c, s->c[a]);
 	p = rotate(c, s);
-	assert(r->p == p);
-	assert(s->p == p);
 
 	if(p->b == c) {
 		s->b = -c;
