@@ -1,3 +1,9 @@
+#ifdef SPW_AVL_STATIC
+#define __SPEWSCOPE static
+#else
+#define __SPEWSCOPE
+#endif
+
 #ifndef __SPEW_AVL_H_INCLUDE
 #define __SPEW_AVL_H_INCLUDE
 
@@ -25,18 +31,19 @@ struct Avltree {
 	Avl *root;
 };
 
-Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
-Avltree *avlinit(Avltree*, int(*cmp)(Avl*, Avl*));
-Avl *avllookup(Avltree*, Avl*);
-Avl *avldelete(Avltree*, Avl*);
-Avl *avlinsert(Avltree*, Avl*);
-Avl *avlnext(Avl*);
-Avl *avlprev(Avl*);
+__SPEWSCOPE Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
+__SPEWSCOPE Avltree *avlinit(Avltree*, int(*cmp)(Avl*, Avl*));
+__SPEWSCOPE Avl *avllookup(Avltree*, Avl*);
+__SPEWSCOPE Avl *avldelete(Avltree*, Avl*);
+__SPEWSCOPE Avl *avlinsert(Avltree*, Avl*);
+__SPEWSCOPE Avl *avlnext(Avl*);
+__SPEWSCOPE Avl *avlprev(Avl*);
 
 #endif // __SPEW_AVL_H_INCLUDE
 
 #ifdef SPEW_AVL_IMPLEMENTATION
 
+__SPEWSCOPE
 Avltree*
 avlcreate(int (*cmp)(Avl*, Avl*))
 {
@@ -51,6 +58,7 @@ avlcreate(int (*cmp)(Avl*, Avl*))
 	return t;
 }
 
+__SPEWSCOPE
 Avltree*
 avlinit(Avltree *t, int (*cmp)(Avl*, Avl*))
 {
@@ -63,6 +71,7 @@ avlinit(Avltree *t, int (*cmp)(Avl*, Avl*))
 }
 
 
+__SPEWSCOPE
 Avl*
 avllookup(Avltree *t, Avl *k)
 {
@@ -87,6 +96,7 @@ avllookup(Avltree *t, Avl *k)
 
 static int insert(int (*)(Avl*, Avl*), Avl*, Avl**, Avl*, Avl**);
 
+__SPEWSCOPE
 Avl*
 avlinsert(Avltree *t, Avl *k)
 {
@@ -162,6 +172,7 @@ static int delete(int (*cmp)(Avl*, Avl*), Avl**, Avl*, Avl**);
 static int deletemin(Avl**, Avl**);
 static int deletefix(int, Avl**);
 
+__SPEWSCOPE
 Avl*
 avldelete(Avltree *t, Avl *k)
 {
@@ -316,12 +327,14 @@ rotate(int c, Avl *s)
 
 static Avl *walk1(int, Avl*);
 
+__SPEWSCOPE
 Avl*
 avlprev(Avl *q)
 {
 	return walk1(0, q);
 }
 
+__SPEWSCOPE
 Avl*
 avlnext(Avl *q)
 {

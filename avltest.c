@@ -81,9 +81,10 @@ checkbalance(Avltree *t)
 int
 main(void)
 {
-	Avltree t;
 	Avl *n;
-	Int *ip;
+	Avltree t;
+	Int *ip, d;
+	int i;
 
 	srand48(time(NULL));
 
@@ -99,6 +100,23 @@ main(void)
 	n = t.root;
 	while(n->c[0] != NULL)
 		n = n->c[0];
+
+	printf("Sorted:\n");
+	ip = (Int*)n;
+	while(ip != NULL) {
+		printf("Val is %d\n", ip->i);
+		ip = (Int*)avlnext(&ip->a);
+	}
+
+	printf("Balance check:\n");
+	checkbalance(&t);
+
+	for(i = 0; i < 50; i++) {
+		d.i = drand48()*randmax;
+		printf("Deleting %d\n", d.i);
+		if(avldelete(&t, &d.a) != NULL)
+			printf("Deleted %d\n", d.i);
+	}
 
 	printf("Sorted:\n");
 	ip = (Int*)n;
