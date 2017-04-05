@@ -1,4 +1,4 @@
 libavl
 =
 
-AVL library for C.
+AVL single header balanced tree library for C.
