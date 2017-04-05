@@ -1,5 +1,5 @@
-CFLAGS=-Wall -Wpedantic -Wextra -O2 -std=c11 -g
-CC=clang
+CFLAGS=-Wall -Wpedantic -Wextra -O2 -std=c11 -fstrict-aliasing -g
+CC=gcc
 
 avltest: avltest.o
 

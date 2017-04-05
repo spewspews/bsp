@@ -1,4 +1,4 @@
-libavl
+Single Header Libraries
 =
 
-AVL single header balanced tree library for C.
+spewavl.h is a single header balanced binary tree.

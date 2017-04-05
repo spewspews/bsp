@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE
 #define SPEW_AVL_IMPLEMENTATION
-#include "avl.h"
+#include "../spewavl.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -18,12 +18,12 @@ Int pool[100];
 #define nelem(x) (sizeof(x)/sizeof(*x))
 
 int
-Intcmp(Avl *a, Avl *b)
+Intcmp(void *a, void *b)
 {
 	Int *ai, *bi;
 
-	ai = (Int*)a;
-	bi = (Int*)b;
+	ai = a;
+	bi = b;
 	if(ai->i < bi->i)
 		return -1;
 	if(ai->i > bi->i)
@@ -105,7 +105,7 @@ main(void)
 	ip = (Int*)n;
 	while(ip != NULL) {
 		printf("Val is %d\n", ip->i);
-		ip = (Int*)avlnext(&ip->a);
+		ip = avlnext(&ip->a);
 	}
 
 	printf("Balance check:\n");
@@ -122,7 +122,7 @@ main(void)
 	ip = (Int*)n;
 	while(ip != NULL) {
 		printf("Val is %d\n", ip->i);
-		ip = (Int*)avlnext(&ip->a);
+		ip = avlnext(&ip->a);
 	}
 
 	printf("Balance check:\n");

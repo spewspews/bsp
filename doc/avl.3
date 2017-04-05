@@ -1,0 +1,181 @@
+.TH AVL 3
+.SH NAME
+avlinit,
+avlcreate,
+avlinsert,
+avldelete,
+avllookup,
+avlnext,
+avlprev \- Balanced binary search tree routines
+.SH SYNOPSIS
+.ta 0.75i 1.5i 2.25i 3i 3.75i 4.5i
+.\" .ta 0.7i +0.7i +0.7i +0.7i +0.7i +0.7i +0.7i
+.EX
+#include "spewavl.h"
+
+typedef struct Avl Avl;
+typedef struct Avltree Avltree;
+
+struct Avl {
+	Avl *c[2];  /* children */
+	Avl *p;     /* parent */
+	int8_t b;   /* balance factor */
+};
+struct Avltree {
+	int (*cmp)(void*, void*);
+	Avl *root;
+};
+
+Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
+Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
+void    *avlinsert(Avltree *tree, Avl *new);
+void    *avldelete(Avltree *tree, Avl *key);
+void    *avllookup(Avltree *tree, Avl *key);
+void    *avlnext(Avl *n);
+void    *avlprev(Avl *n);
+
+.EE
+.SH DESCRIPTION
+These routines allow creation and maintenance of in-memory balanced
+binary search trees.
+.PP
+The intended usage is for a parent structure to contain the
+.B Avl
+structure as its first member as well as other data to be
+stored in the tree. A pointer to the Avl member is then passed
+to the library API functions and the API functions
+will then return pointers to the parent structure.
+See the example below for details.
+.PP
+A tree is initialized by calling
+.I avlinit
+with an empty tree and a comparison function as arguments.
+The comparison function receives two pointers to nodes stored
+in the tree and should return an integer less than, equal to, or
+greater than 0 as the first is
+respectively ordered less than,
+equal to, or greater than the second.
+A new empty tree can be created by calling
+.I avlcreate
+with a comparison function as an argument. This function
+calls
+.I malloc
+(see
+.IR malloc (3))
+and the returned tree should be free
+after use.
+.PP
+.I Avlinsert
+adds a new node to the tree. If avlinsert finds an existing
+node with the same key then that node is removed from
+the tree and returned. Otherwise avlinsert returns
+.BR NULL .
+.I Avllookup
+returns the
+node that matches the key or
+.B NULL
+if no node matches.
+.I Avldelete
+removes the node matching the key from the tree and returns
+it. It returns
+.B NULL
+if no matching key is found.
+.PP
+.I Avlnext
+returns the next 
+.B Avl 
+node in an in-order walk of the AVL tree
+and
+.I avlprev
+returns the previous node.
+.SH EXAMPLES
+Intended usage is to embed the
+.B Avl
+structure as the first member of a parent structure
+which also contains the data to be stored in the tree.
+A pointer to the embedded AVL structure should then be passed
+to the library api functions.
+For example, the following is a full implementation of
+a string to integer map.
+.IP
+.EX
+#define SPEW_AVL_IMPLEMENTATION
+#include "spewavl.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Node {
+	Avl avl;
+	char *key;
+	int val;
+} Node;
+
+int
+nodecmp(void *a, void *b)
+{
+	Node *na, *nb;
+
+	na = a;
+	nb = b;
+	return strcmp(na->key, nb->key);
+}
+
+void
+put(Avltree *t, char *key, int val)
+{
+	Node *h;
+
+	h = malloc(sizeof(*h));
+	h->key = key;
+	h->val = val;
+	h = avlinsert(t, &h->avl);
+	if(h != NULL)
+		free(h);
+}
+
+int
+update(Avltree *t, char *key, int val)
+{
+	Node *h, n;
+
+	n.key = key;
+	h = avllookup(t, &n.avl);
+	if(h != NULL) {
+		h->val = val;
+		return 1;
+	}
+	return 0;
+}
+
+int
+get(Avltree *t, char *key)
+{
+	Node *h, n;
+
+	n.key = key;
+	h = avllookup(t, &n.avl);
+	return h == NULL ? -1 : h->val;
+}
+
+int
+remove(Avltree *t, char *key)
+{
+	Node *h, n;
+
+	n.key = key;
+	h = avldelete(t, &n.avl);
+	if(h == NULL)
+		return 0;
+	free(h);
+	return 1;
+}
+.EE
+.SH SEE ALSO
+.nf
+Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
+.SH DIAGNOSTICS
+.I Avlcreate
+returns nil on error.
+.SH HISTORY
+This implementation was originally written for 9front (Dec, 2016).
