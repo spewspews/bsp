@@ -215,6 +215,8 @@ __SPEW_AVL_SCOPE void *avldelete(Avltree*, Avl*);
 __SPEW_AVL_SCOPE void *avlinsert(Avltree*, Avl*);
 __SPEW_AVL_SCOPE void *avlnext(Avl*);
 __SPEW_AVL_SCOPE void *avlprev(Avl*);
+__SPEW_AVL_SCOPE void *avlmin(Avltree*);
+__SPEW_AVL_SCOPE void *avlmax(Avltree*);
 
 #endif // __SPEW_AVL_H_INCLUDE
 
@@ -278,6 +280,9 @@ void*
 avlinsert(Avltree *t, Avl *k)
 {
 	Avl *old;
+
+	if(t == NULL)
+		return NULL;
 
 	old = NULL;
 	insert(t->cmp, NULL, &t->root, k, &old);
@@ -355,8 +360,11 @@ avldelete(Avltree *t, Avl *k)
 {
 	Avl *old;
 
+	if(t == NULL)
+		return NULL;
 	if(t->root == NULL)
 		return NULL;
+
 	old = NULL;
 	delete(t->cmp, &t->root, k, &old);
 	return old;
@@ -533,5 +541,37 @@ walk1(int a, Avl *q)
 		q = p;
 	return p;
 }
+
+static Avl *bottom(Avltree*,int);
+
+__SPEW_AVL_SCOPE
+void*
+avlmin(Avltree *t)
+{
+	return bottom(t, 0);
+}
+
+__SPEW_AVL_SCOPE
+void*
+avlmax(Avltree *t)
+{
+	return bottom(t, 1);
+}
+
+static Avl*
+bottom(Avltree *t, int d)
+{
+	Avl *n;
+
+	if(t == NULL)
+		return NULL;
+	if(t->root == NULL)
+		return NULL;
+
+	for(n = t->root; n->c[d] != NULL; n = n->c[d])
+		;
+	return n;
+}
+
 
 #endif // SPEW_AVL_IMPLEMENTATION
