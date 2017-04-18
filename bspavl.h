@@ -176,7 +176,7 @@ before the '#include "bspavl.h"' line.
           2016).
 */
 
-#ifdef SPW_AVL_STATIC
+#ifdef BSP_AVL_STATIC
 #define __BSP_AVL_SCOPE static
 #else
 #define __BSP_AVL_SCOPE
@@ -196,6 +196,7 @@ extern "C" {
 
 typedef struct Avl Avl;
 typedef struct Avltree Avltree;
+typedef int (*Avlcmp)(void*, void*);
 
 struct Avl {
 	Avl *c[2];
@@ -204,12 +205,12 @@ struct Avl {
 };
 
 struct Avltree {
-	int (*cmp)(void*, void*);
+	Avlcmp cmp;
 	Avl *root;
 };
 
-__BSP_AVL_SCOPE Avltree *avlcreate(int(*cmp)(void*, void*));
-__BSP_AVL_SCOPE Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
+__BSP_AVL_SCOPE Avltree *avlcreate(Avlcmp);
+__BSP_AVL_SCOPE Avltree *avlinit(Avltree*, Avlcmp);
 __BSP_AVL_SCOPE void *avllookup(Avltree*, Avl*);
 __BSP_AVL_SCOPE void *avldelete(Avltree*, Avl*);
 __BSP_AVL_SCOPE void *avlinsert(Avltree*, Avl*);
@@ -224,7 +225,7 @@ __BSP_AVL_SCOPE void *avlmax(Avltree*);
 
 __BSP_AVL_SCOPE
 Avltree*
-avlcreate(int (*cmp)(void*, void*))
+avlcreate(Avlcmp cmp)
 {
 	Avltree *t;
 
@@ -239,7 +240,7 @@ avlcreate(int (*cmp)(void*, void*))
 
 __BSP_AVL_SCOPE
 Avltree*
-avlinit(Avltree *t, int (*cmp)(void*, void*))
+avlinit(Avltree *t, Avlcmp cmp)
 {
 	if(t == NULL)
 		return NULL;
@@ -273,7 +274,7 @@ avllookup(Avltree *t, Avl *k)
 	return NULL;
 }
 
-static int insert(int (*cmp)(void*, void*), Avl*, Avl**, Avl*, Avl**);
+static int insert(Avlcmp, Avl*, Avl**, Avl*, Avl**);
 
 __BSP_AVL_SCOPE
 void*
@@ -292,7 +293,7 @@ avlinsert(Avltree *t, Avl *k)
 static int insertfix(int, Avl**);
 
 static int
-insert(int (*cmp)(void*, void*), Avl *p, Avl **qp, Avl *k, Avl **oldp)
+insert(Avlcmp cmp, Avl *p, Avl **qp, Avl *k, Avl **oldp)
 {
 	Avl *q;
 	int fix, c;
@@ -350,7 +351,7 @@ insertfix(int c, Avl **t)
 	return 0;
 }
 
-static int delete(int (*cmp)(void*, void*), Avl**, Avl*, Avl**);
+static int delete(Avlcmp, Avl**, Avl*, Avl**);
 static int deletemin(Avl**, Avl**);
 static int deletefix(int, Avl**);
 
@@ -371,7 +372,7 @@ avldelete(Avltree *t, Avl *k)
 }
 
 static int
-delete(int (*cmp)(void*, void*), Avl **qp, Avl *k, Avl **oldp)
+delete(Avlcmp cmp, Avl **qp, Avl *k, Avl **oldp)
 {
 	Avl *q, *e;
 	int c, fix;
