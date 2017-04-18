@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE
-#define SPEW_AVL_IMPLEMENTATION
-#include "../spewavl.h"
+#define BSP_AVL_IMPLEMENTATION
+#include "../bspavl.h"
 
 #include <assert.h>
 #include <stdio.h>

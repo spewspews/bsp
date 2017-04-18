@@ -1,18 +1,18 @@
 /*
 Copyright (c) 2017 Benjamin Scher Purcell <benjapurcell@gmail.com>
 and is licensed for use under the terms found at
-https://github.com/spewspews/spewsh/blob/master/LICENSE
+https://github.com/spewspews/bsp/blob/master/LICENSE
 
 This is a no memory allocation balanced binary tree with no dependencies.
-Simply '#include "spewavl.h"' the file anywhere you wish to use it and in one file
+Simply '#include "bspavl.h"' the file anywhere you wish to use it and in one file
 do this:
-	#define SPEW_AVL_IMPLEMENTATION
-before the '#include "spewavl.h"' line.
+	#define BSP_AVL_IMPLEMENTATION
+before the '#include "bspavl.h"' line.
 
 If you would like the implementation to remain static to one compilation
 unit also do this:
-	#define SPEW_AVL_STATIC
-before the '#include "spewavl.h"' line.
+	#define BSP_AVL_STATIC
+before the '#include "bspavl.h"' line.
 
      AVL(3)                                                     AVL(3)
 
@@ -21,7 +21,7 @@ before the '#include "spewavl.h"' line.
           avlnext, avlprev - Balanced binary search tree routines
 
      SYNOPSIS
-          #include "spewavl.h"
+          #include "bspavl.h"
 
           typedef struct Avl Avl;
           typedef struct Avltree Avltree;
@@ -85,8 +85,8 @@ before the '#include "spewavl.h"' line.
           For example, the following is a full implementation of a
           string to integer map.
 
-               #define SPEW_AVL_IMPLEMENTATION
-               #include "spewavl.h"
+               #define BSP_AVL_IMPLEMENTATION
+               #include "bspavl.h"
 
                #include <stdlib.h>
                #include <string.h>
@@ -177,13 +177,13 @@ before the '#include "spewavl.h"' line.
 */
 
 #ifdef SPW_AVL_STATIC
-#define __SPEW_AVL_SCOPE static
+#define __BSP_AVL_SCOPE static
 #else
-#define __SPEW_AVL_SCOPE
+#define __BSP_AVL_SCOPE
 #endif
 
-#ifndef __SPEW_AVL_H_INCLUDE
-#define __SPEW_AVL_H_INCLUDE
+#ifndef __BSP_AVL_H_INCLUDE
+#define __BSP_AVL_H_INCLUDE
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -208,21 +208,21 @@ struct Avltree {
 	Avl *root;
 };
 
-__SPEW_AVL_SCOPE Avltree *avlcreate(int(*cmp)(void*, void*));
-__SPEW_AVL_SCOPE Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
-__SPEW_AVL_SCOPE void *avllookup(Avltree*, Avl*);
-__SPEW_AVL_SCOPE void *avldelete(Avltree*, Avl*);
-__SPEW_AVL_SCOPE void *avlinsert(Avltree*, Avl*);
-__SPEW_AVL_SCOPE void *avlnext(Avl*);
-__SPEW_AVL_SCOPE void *avlprev(Avl*);
-__SPEW_AVL_SCOPE void *avlmin(Avltree*);
-__SPEW_AVL_SCOPE void *avlmax(Avltree*);
+__BSP_AVL_SCOPE Avltree *avlcreate(int(*cmp)(void*, void*));
+__BSP_AVL_SCOPE Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
+__BSP_AVL_SCOPE void *avllookup(Avltree*, Avl*);
+__BSP_AVL_SCOPE void *avldelete(Avltree*, Avl*);
+__BSP_AVL_SCOPE void *avlinsert(Avltree*, Avl*);
+__BSP_AVL_SCOPE void *avlnext(Avl*);
+__BSP_AVL_SCOPE void *avlprev(Avl*);
+__BSP_AVL_SCOPE void *avlmin(Avltree*);
+__BSP_AVL_SCOPE void *avlmax(Avltree*);
 
-#endif // __SPEW_AVL_H_INCLUDE
+#endif // __BSP_AVL_H_INCLUDE
 
-#ifdef SPEW_AVL_IMPLEMENTATION
+#ifdef BSP_AVL_IMPLEMENTATION
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 Avltree*
 avlcreate(int (*cmp)(void*, void*))
 {
@@ -237,7 +237,7 @@ avlcreate(int (*cmp)(void*, void*))
 	return t;
 }
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 Avltree*
 avlinit(Avltree *t, int (*cmp)(void*, void*))
 {
@@ -250,7 +250,7 @@ avlinit(Avltree *t, int (*cmp)(void*, void*))
 }
 
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avllookup(Avltree *t, Avl *k)
 {
@@ -275,7 +275,7 @@ avllookup(Avltree *t, Avl *k)
 
 static int insert(int (*cmp)(void*, void*), Avl*, Avl**, Avl*, Avl**);
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avlinsert(Avltree *t, Avl *k)
 {
@@ -354,7 +354,7 @@ static int delete(int (*cmp)(void*, void*), Avl**, Avl*, Avl**);
 static int deletemin(Avl**, Avl**);
 static int deletefix(int, Avl**);
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avldelete(Avltree *t, Avl *k)
 {
@@ -510,14 +510,14 @@ rotate(int c, Avl *s)
 
 static Avl *walk1(int, Avl*);
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avlprev(Avl *q)
 {
 	return walk1(0, q);
 }
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avlnext(Avl *q)
 {
@@ -544,14 +544,14 @@ walk1(int a, Avl *q)
 
 static Avl *bottom(Avltree*,int);
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avlmin(Avltree *t)
 {
 	return bottom(t, 0);
 }
 
-__SPEW_AVL_SCOPE
+__BSP_AVL_SCOPE
 void*
 avlmax(Avltree *t)
 {
@@ -574,4 +574,4 @@ bottom(Avltree *t, int d)
 }
 
 
-#endif // SPEW_AVL_IMPLEMENTATION
+#endif // BSP_AVL_IMPLEMENTATION
