@@ -1,5 +1,5 @@
-#define SPEW_AVL_IMPLEMENTATION
-#include "../spewavl.h"
+#define BSP_AVL_IMPLEMENTATION
+#include "../bspavl.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -68,4 +68,12 @@ remove(Avltree *t, char *key)
 		return 0;
 	free(h);
 	return 1;
+}
+
+int
+main(void)
+{
+	Avltree t;
+	avlinit(&t, nodecmp);
+	exit(0);
 }
