@@ -43,10 +43,11 @@ binary search trees.
 The intended usage is for a parent structure to contain the
 .B Avl
 structure as its first member as well as other data to be
-stored in the tree. A pointer to the Avl member is then passed
-to the library API functions and the API functions
-will then return pointers to the parent structure.
-See the example below for details.
+stored in the tree. A pointer to the Avl member is passed
+to the library API functions. The API functions then pass
+the pointers to the comparison function and return them
+as return values. See the example below for details on
+how this works in practice.
 .PP
 A tree is initialized by calling
 .I avlinit

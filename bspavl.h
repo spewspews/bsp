@@ -14,8 +14,6 @@ unit also do this:
 	#define BSP_AVL_STATIC
 before the '#include "bspavl.h"' line.
 
-DOCUMENTATION:
-
 AVL(3)                     Library Functions Manual                     AVL(3)
 
 
@@ -56,32 +54,33 @@ DESCRIPTION
 
        The  intended usage is for a parent structure to contain the Avl struc-
        ture as its first member as well as other data  to  be  stored  in  the
-       tree.  A  pointer  to  the Avl member is then passed to the library API
-       functions and the API functions will then return pointers to the parent
-       structure.  See the example below for details.
+       tree.  A  pointer  to the Avl member is passed to the library API func-
+       tions. The API functions then pass the pointers to the comparison func-
+       tion  and  return  them  as  return  values.  See the example below for
+       details on how this works in practice.
 
-       A  tree is initialized by calling avlinit with an empty tree and a com-
-       parison function as arguments.  The comparison  function  receives  two
-       pointers  to nodes stored in the tree and should return an integer less
-       than, equal to, or greater than 0 as the first is respectively  ordered
-       less  than, equal to, or greater than the second.  A new empty tree can
-       be created by calling avlcreate with a comparison function as an  argu-
-       ment.  This function calls malloc (see malloc(3)) and the returned tree
+       A tree is initialized by calling avlinit with an empty tree and a  com-
+       parison  function  as  arguments.  The comparison function receives two
+       pointers to nodes stored in the tree and should return an integer  less
+       than,  equal to, or greater than 0 as the first is respectively ordered
+       less than, equal to, or greater than the second.  A new empty tree  can
+       be  created by calling avlcreate with a comparison function as an argu-
+       ment. This function calls malloc (see malloc(3)) and the returned  tree
        should be free after use.
 
-       Avlinsert adds a new node to the tree. If avlinsert finds  an  existing
-       node  with  the  same  key  then that node is removed from the tree and
+       Avlinsert  adds  a new node to the tree. If avlinsert finds an existing
+       node with the same key then that node is  removed  from  the  tree  and
        returned. Otherwise avlinsert returns NULL.  Avllookup returns the node
        that matches the key or NULL if no node matches.  Avldelete removes the
-       node matching the key from the tree and returns it. It returns NULL  if
+       node  matching the key from the tree and returns it. It returns NULL if
        no matching key is found.
 
-       Avlnext  returns  the next Avl node in an in-order walk of the AVL tree
+       Avlnext returns the next Avl node in an in-order walk of the  AVL  tree
        and avlprev returns the previous node.
 
 EXAMPLES
-       Typical usage is to embed the Avl structure as the first  member  of  a
-       structure  that  holds  data  to  be  stored  in the tree.  Then pass a
+       Typical  usage  is  to embed the Avl structure as the first member of a
+       structure that holds data to be  stored  in  the  tree.   Then  pass  a
        pointer to this member to the library functions.
 
               #define BSP_AVL_IMPLEMENTATION
@@ -92,7 +91,8 @@ EXAMPLES
               #include <string.h>
 
               // Important that the first struct member is
-              // the Avl node.
+              // the Avl struct since this makes address of the Avl
+              // struct equal to  the address of the Node struct.
               typedef struct Node {
                      Avl avl;
                      char *key;
@@ -104,6 +104,7 @@ EXAMPLES
               {
                      Node *m, *n;
 
+                     // Addresses are the same so conversion is easy.
                      m = (Node*)a;
                      n = (Node*)b;
                      return strcmp(m->key, n->key);
@@ -116,48 +117,61 @@ EXAMPLES
                      Node *n, m;
 
                      avlinit(&t, nodecmp);
+
                      n = malloc(sizeof(*n));
+
                      n->key = "meaningoflife";
                      n->val = 42;
                      avlinsert(&t, &n->avl);
 
                      n = malloc(sizeof(*n));
+
                      n->key = "pi";
                      n->val = 3.14;
                      avlinsert(&t, &n->avl);
 
                      m.key = "meaningoflife";
                      n = (Node*)avllookup(&t, &m.avl);
+
                      printf("%s: %g\n", n->key, n->val);
+
                      n->val = 54;
-                     // Outputs "meaningoflife: 42".
 
                      n = (Node*)avlnext(&n->avl);
                      printf("%s: %g\n", n->key, n->val);
-                     // Outputs "pi: 3.14".
 
-                     // There are no more nodes.
                      if(avlnext(&n->avl) == NULL)
                              printf("No more nodes\n");
 
                      m.key = "meaningoflife";
                      n = (Node*)avldelete(&t, &m.avl);
+
                      printf("%s: %g\n", n->key, n->val);
                      free(n);
-                     // Outputs "meaningoflife: 54"
 
-                     // A very inefficient update.
                      n = malloc(sizeof(*n));
+
                      n->key = "pi";
                      n->val = 3.14159;
                      n = (Node*)avlinsert(&t, &n->avl);
-                     printf("%g\n", n->val);
+
+                     printf("old node: %s: %g\n", n->key, n->val);
                      free(n);
-                     // We get back the old value 3.14 and
-                     // new value 3.14159 is inserted into tree.
+
+                     m.key = "pi";
+                     n = (Node*)avllookup(&t, &m.avl);
+
+                     printf("new node: %s: %g\n", n->key, n->val);
 
                      exit(0);
               }
+              // Output:
+              // meaningoflife: 42
+              // pi: 3.14
+              // No more nodes
+              // meaningoflife: 54
+              // old node: pi: 3.14
+              // new node: pi: 3.14159
 
 SEE ALSO
        Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
