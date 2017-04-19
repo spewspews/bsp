@@ -46,17 +46,25 @@ edgefree(Edge *e)
 	edgepool = e;
 }
 
+Nodedata*
+nodedata(int n)
+{
+	return nodesdata.a + n-1;
+}
+
 void
 addedge(int s, int d, int dist)
 {
 	Edge *e;
+	Nodedata *nd;
 
 	e = edgealloc();
 	e->node = d;
 	e->dist = dist;
 	e->next = NULL;
-	*nodesdata.a[s-1].etail = e;
-	nodesdata.a[s-1].etail = &e->next;
+	nd = nodedata(s);
+	*nd->etail = e;
+	nd->etail = &e->next;
 }
 
 void
@@ -65,14 +73,14 @@ dijkstra(int start)
 }
 
 void
-initnode(Nodedata *nd, int n)
+initnodedata(Nodedata *nd, int n)
 {
-	*ndp->etail = edgepool;
-	edgepool = ndp->edges;
-	ndp->edges = NULL;
-	ndp->etail = &ndp->edges;
-	ndp->dist = -1;
-	ndp->node = n++;
+	*nd->etail = edgepool;
+	edgepool = nd->edges;
+	nd->edges = NULL;
+	nd->etail = &nd->edges;
+	nd->dist = -1;
+	nd->node = n;
 }
 
 void
@@ -82,14 +90,14 @@ testcase(void)
 	int nodes, edges, s, d, dist, start, n;
 
 	scanf("%d %d", &nodes, &edges);
-	if(nodesdata.len < nodes+1) {
-		nodesdata.len = 2*(nodes+1);
+	if(nodesdata.len < nodes) {
+		nodesdata.len = 2*nodes;
 		free(nodesdata.a);
 		nodesdata.a = calloc(nodesdata.len, sizeof(*nodesdata.a));
 	}
 	n = 1;
 	for(ndp = nodesdata.a; ndp < nodesdata.a + nodes; ndp++)
-		initnode(ndp, n++);
+		initnodedata(ndp, n++);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);
