@@ -18,12 +18,12 @@ Int pool[100];
 #define nelem(x) (sizeof(x)/sizeof(*x))
 
 int
-Intcmp(void *a, void *b)
+Intcmp(Avl *a, Avl *b)
 {
 	Int *ai, *bi;
 
-	ai = a;
-	bi = b;
+	ai = (Int*)a;
+	bi = (Int*)b;
 	if(ai->i < bi->i)
 		return -1;
 	if(ai->i > bi->i)
@@ -97,7 +97,7 @@ main(void)
 		avlinsert(&t, &ip->a);
 
 	printf("Sorted:\n");
-	for(ip = avlmin(&t); ip != NULL; ip = avlnext(&ip->a))
+	for(ip = (Int*)avlmin(&t); ip != NULL; ip = (Int*)avlnext(&ip->a))
 		printf("Val is %d\n", ip->i);
 
 	printf("Balance check:\n");
@@ -111,7 +111,7 @@ main(void)
 	}
 
 	printf("Sorted:\n");
-	for(ip = avlmin(&t); ip != NULL; ip = avlnext(&ip->a))
+	for(ip = (Int*)avlmin(&t); ip != NULL; ip = (Int*)avlnext(&ip->a))
 		printf("Val is %d\n", ip->i);
 	
 

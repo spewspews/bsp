@@ -29,11 +29,11 @@ struct Avltree {
 
 Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
 Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
-void    *avlinsert(Avltree *tree, Avl *new);
-void    *avldelete(Avltree *tree, Avl *key);
-void    *avllookup(Avltree *tree, Avl *key);
-void    *avlnext(Avl *n);
-void    *avlprev(Avl *n);
+Avl     *avlinsert(Avltree *tree, Avl *new);
+Avl     *avldelete(Avltree *tree, Avl *key);
+Avl     *avllookup(Avltree *tree, Avl *key);
+Avl     *avlnext(Avl *n);
+Avl     *avlprev(Avl *n);
 
 .EE
 .SH DESCRIPTION
@@ -90,17 +90,17 @@ and
 .I avlprev
 returns the previous node.
 .SH EXAMPLES
-Intended usage is to embed the
+Typical usage is to embed the
 .B Avl
-structure as the first member of a parent structure
-which also contains the data to be stored in the tree.
-A pointer to the embedded AVL structure should then be passed
-to the library api functions.
-For example, the following is a full implementation of
-a string to integer map.
+structure as the first member of a structure
+that holds data to be stored in the tree.
+Then pass a pointer to this member to the library
+functions.
 .IP
 .EX
-.so avlexample.c
+.sy sed 's;\\\\;\\\\\\\\;' avlexample.c > /tmp/example
+.so /tmp/example
+.sy rm /tmp/example
 .EE
 .SH SEE ALSO
 .nf

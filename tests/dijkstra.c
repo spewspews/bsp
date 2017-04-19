@@ -84,20 +84,23 @@ initnodedata(Nodedata *nd, int n)
 }
 
 void
+reallocnodesdata(int nodes)
+{
+	nodesdata.len = 2*nodes;
+	free(nodesdata.a);
+	nodesdata.a = calloc(nodesdata.len, sizeof(*nodesdata.a));
+}
+
+void
 testcase(void)
 {
-	Nodedata *ndp;
-	int nodes, edges, s, d, dist, start, n;
+	int nodes, edges, s, d, dist, start, i;
 
 	scanf("%d %d", &nodes, &edges);
-	if(nodesdata.len < nodes) {
-		nodesdata.len = 2*nodes;
-		free(nodesdata.a);
-		nodesdata.a = calloc(nodesdata.len, sizeof(*nodesdata.a));
-	}
-	n = 1;
-	for(ndp = nodesdata.a; ndp < nodesdata.a + nodes; ndp++)
-		initnodedata(ndp, n++);
+	if(nodesdata.len < nodes)
+		reallocnodesdata(nodes);
+	for(i = 0; i < nodes; i++)
+		initnodedata(&nodesdata.a[i], i+1);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);

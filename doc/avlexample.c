@@ -1,79 +1,74 @@
 #define BSP_AVL_IMPLEMENTATION
 #include "../bspavl.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Important that the first struct member is
+// the Avl node.
 typedef struct Node {
 	Avl avl;
 	char *key;
-	int val;
+	double val;
 } Node;
 
 int
-nodecmp(void *a, void *b)
+nodecmp(Avl *a, Avl *b)
 {
-	Node *na, *nb;
+	Node *m, *n;
 
-	na = a;
-	nb = b;
-	return strcmp(na->key, nb->key);
-}
-
-int
-update(Avltree *t, char *key, int val)
-{
-	Node *h, n;
-
-	n.key = key;
-	h = avllookup(t, &n.avl);
-	if(h != NULL) {
-		h->val = val;
-		return 1;
-	}
-	return 0;
-}
-
-void
-put(Avltree *t, char *key, int val)
-{
-	Node *h;
-
-	h = malloc(sizeof(*h));
-	h->key = key;
-	h->val = val;
-	h = avlinsert(t, &h->avl);
-	if(h != NULL)
-		free(h);
-}
-
-int
-get(Avltree *t, char *key)
-{
-	Node *h, n;
-
-	n.key = key;
-	h = avllookup(t, &n.avl);
-	return h == NULL ? -1 : h->val;
-}
-
-int
-remove(Avltree *t, char *key)
-{
-	Node *h, n;
-
-	n.key = key;
-	h = avldelete(t, &n.avl);
-	if(h == NULL)
-		return 0;
-	free(h);
-	return 1;
+	m = (Node*)a;
+	n = (Node*)b;
+	return strcmp(m->key, n->key);
 }
 
 int
 main(void)
 {
 	Avltree t;
+	Node *n, m;
+
 	avlinit(&t, nodecmp);
+	n = malloc(sizeof(*n));
+	n->key = "meaningoflife";
+	n->val = 42;
+	avlinsert(&t, &n->avl);
+
+	n = malloc(sizeof(*n));
+	n->key = "pi";
+	n->val = 3.14;
+	avlinsert(&t, &n->avl);
+
+	m.key = "meaningoflife";
+	n = (Node*)avllookup(&t, &m.avl);
+	printf("%s: %g\n", n->key, n->val);
+	n->val = 54;
+	// Outputs "meaningoflife: 42".
+
+	n = (Node*)avlnext(&n->avl);
+	printf("%s: %g\n", n->key, n->val);
+	// Outputs "pi: 3.14".
+
+	// There are no more nodes.
+	if(avlnext(&n->avl) == NULL)
+		printf("No more nodes\n");
+
+	m.key = "meaningoflife";
+	n = (Node*)avldelete(&t, &m.avl);
+	printf("%s: %g\n", n->key, n->val);
+	free(n);
+	// Outputs "meaningoflife: 54"
+
+	// A very inefficient update.
+	n = malloc(sizeof(*n));
+	n->key = "pi";
+	n->val = 3.14159;
+	n = (Node*)avlinsert(&t, &n->avl);
+	printf("%g\n", n->val);
+	free(n);
+	// We get back the old value 3.14 and
+	// new value 3.14159 is inserted into tree.
+
 	exit(0);
 }

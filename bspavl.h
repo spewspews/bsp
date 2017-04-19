@@ -14,166 +14,163 @@ unit also do this:
 	#define BSP_AVL_STATIC
 before the '#include "bspavl.h"' line.
 
-     AVL(3)                                                     AVL(3)
+DOCUMENTATION:
 
-     NAME
-          avlinit, avlcreate, avlinsert, avldelete, avllookup,
-          avlnext, avlprev - Balanced binary search tree routines
-
-     SYNOPSIS
-          #include "bspavl.h"
-
-          typedef struct Avl Avl;
-          typedef struct Avltree Avltree;
-
-          struct Avl {
-                 Avl *c[2];
-                 Avl *p;
-                 int8_t b;
-          };
-          struct Avltree {
-                 int (*cmp)(void*, void*);
-                 Avl *root;
-          };
-
-          Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
-          Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
-          void    *avlinsert(Avltree *tree, Avl *new);
-          void    *avldelete(Avltree *tree, Avl *key);
-          void    *avllookup(Avltree *tree, Avl *key);
-          void    *avlnext(Avl *n);
-          void    *avlprev(Avl *n);
+AVL(3)                     Library Functions Manual                     AVL(3)
 
 
-     DESCRIPTION
-          These routines allow creation and maintenance of in-memory
-          balanced binary search trees.
 
-          The intended usage is for a parent structure to contain the
-          Avl structure as its first member as well as other data to
-          be stored in the tree. A pointer to the Avl member is then
-          passed to the library API functions and the API functions
-          will then return pointers to the parent structure.  See the
-          example below for details.
+NAME
+       avlinit, avlcreate, avlinsert, avldelete, avllookup, avlnext, avlprev -
+       Balanced binary search tree routines
 
-          A tree is initialized by calling avlinit with an empty tree
-          and a comparison function as arguments.  The comparison
-          function receives two pointers to nodes stored in the tree
-          and should return an integer less than, equal to, or greater
-          than 0 as the first is respectively ordered less than, equal
-          to, or greater than the second.  A new empty tree can be
-          created by calling avlcreate with a comparison function as
-          an argument. This function calls malloc (see malloc(3)) and
-          the returned tree should be free after use.
+SYNOPSIS
+       #include "spewavl.h"
 
-          Avlinsert adds a new node to the tree. If avlinsert finds an
-          existing node with the same key then that node is removed
-          from the tree and returned. Otherwise avlinsert returns
-          NULL.  Avllookup returns the node that matches the key or
-          NULL if no node matches.  Avldelete removes the node match-
-          ing the key from the tree and returns it. It returns NULL if
-          no matching key is found.
+       typedef struct Avl Avl;
+       typedef struct Avltree Avltree;
 
-          Avlnext returns the next Avl node in an in-order walk of the
-          AVL tree and avlprev returns the previous node.
+       struct Avl {
+              Avl *c[2];
+              Avl *p;
+              int8_t b;
+       };
 
-     EXAMPLES
-          Intended usage is to embed the Avl structure as the first
-          member of a parent structure which also contains the data to
-          be stored in the tree.  A pointer to the embedded AVL struc-
-          ture should then be passed to the library api functions.
-          For example, the following is a full implementation of a
-          string to integer map.
+       struct Avltree {
+              int (*cmp)(void*, void*);
+              Avl *root;
+       };
 
-               #define BSP_AVL_IMPLEMENTATION
-               #include "bspavl.h"
+       Avltree *avlinit(Avltree*, int(*cmp)(void*, void*));
+       Avltree *avlcreate(int(*cmp)(Avl*, Avl*));
+       Avl     *avlinsert(Avltree *tree, Avl *new);
+       Avl     *avldelete(Avltree *tree, Avl *key);
+       Avl     *avllookup(Avltree *tree, Avl *key);
+       Avl     *avlnext(Avl *n);
+       Avl     *avlprev(Avl *n);
 
-               #include <stdlib.h>
-               #include <string.h>
 
-               typedef struct Node {
-                      Avl avl;
-                      char *key;
-                      int val;
-               } Node;
+DESCRIPTION
+       These routines allow creation and  maintenance  of  in-memory  balanced
+       binary search trees.
 
-               int
-               nodecmp(void *a, void *b)
-               {
-                      Node *na, *nb;
+       The  intended usage is for a parent structure to contain the Avl struc-
+       ture as its first member as well as other data  to  be  stored  in  the
+       tree.  A  pointer  to  the Avl member is then passed to the library API
+       functions and the API functions will then return pointers to the parent
+       structure.  See the example below for details.
 
-                      na = a;
-                      nb = b;
-                      return strcmp(na->key, nb->key);
-               }
+       A  tree is initialized by calling avlinit with an empty tree and a com-
+       parison function as arguments.  The comparison  function  receives  two
+       pointers  to nodes stored in the tree and should return an integer less
+       than, equal to, or greater than 0 as the first is respectively  ordered
+       less  than, equal to, or greater than the second.  A new empty tree can
+       be created by calling avlcreate with a comparison function as an  argu-
+       ment.  This function calls malloc (see malloc(3)) and the returned tree
+       should be free after use.
 
-               void
-               put(Avltree *t, char *key, int val)
-               {
-                      Node *h;
+       Avlinsert adds a new node to the tree. If avlinsert finds  an  existing
+       node  with  the  same  key  then that node is removed from the tree and
+       returned. Otherwise avlinsert returns NULL.  Avllookup returns the node
+       that matches the key or NULL if no node matches.  Avldelete removes the
+       node matching the key from the tree and returns it. It returns NULL  if
+       no matching key is found.
 
-                      h = malloc(sizeof(*h));
-                      h->key = key;
-                      h->val = val;
-                      h = avlinsert(t, &h->avl);
-                      if(h != NULL)
-                              free(h);
-               }
+       Avlnext  returns  the next Avl node in an in-order walk of the AVL tree
+       and avlprev returns the previous node.
 
-               int
-               update(Avltree *t, char *key, int val)
-               {
-                      Node *h, n;
+EXAMPLES
+       Typical usage is to embed the Avl structure as the first  member  of  a
+       structure  that  holds  data  to  be  stored  in the tree.  Then pass a
+       pointer to this member to the library functions.
 
-                      n.key = key;
-                      h = avllookup(t, &n.avl);
-                      if(h != NULL) {
-                              h->val = val;
-                              return 1;
-                      }
-                      return 0;
-               }
+              #define BSP_AVL_IMPLEMENTATION
+              #include "../bspavl.h"
 
-               int
-               get(Avltree *t, char *key)
-               {
-                      Node *h, n;
+              #include <stdio.h>
+              #include <stdlib.h>
+              #include <string.h>
 
-                      n.key = key;
-                      h = avllookup(t, &n.avl);
-                      return h == NULL ? -1 : h->val;
-               }
+              // Important that the first struct member is
+              // the Avl node.
+              typedef struct Node {
+                     Avl avl;
+                     char *key;
+                     double val;
+              } Node;
 
-               int
-               remove(Avltree *t, char *key)
-               {
-                      Node *h, n;
+              int
+              nodecmp(Avl *a, Avl *b)
+              {
+                     Node *m, *n;
 
-                      n.key = key;
-                      h = avldelete(t, &n.avl);
-                      if(h == NULL)
-                              return 0;
-                      free(h);
-                      return 1;
-               }
+                     m = (Node*)a;
+                     n = (Node*)b;
+                     return strcmp(m->key, n->key);
+              }
 
-                int
-                main(void)
-                {
-                        Avltree t;
-                        avlinit(&t, nodecmp);
-                        exit(0);
-                }
+              int
+              main(void)
+              {
+                     Avltree t;
+                     Node *n, m;
 
-     SEE ALSO
-          Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
+                     avlinit(&t, nodecmp);
+                     n = malloc(sizeof(*n));
+                     n->key = "meaningoflife";
+                     n->val = 42;
+                     avlinsert(&t, &n->avl);
 
-     DIAGNOSTICS
-          Avlcreate returns nil on error.
+                     n = malloc(sizeof(*n));
+                     n->key = "pi";
+                     n->val = 3.14;
+                     avlinsert(&t, &n->avl);
 
-     HISTORY
-          This implementation was originally written for 9front (Dec,
-          2016).
+                     m.key = "meaningoflife";
+                     n = (Node*)avllookup(&t, &m.avl);
+                     printf("%s: %g\n", n->key, n->val);
+                     n->val = 54;
+                     // Outputs "meaningoflife: 42".
+
+                     n = (Node*)avlnext(&n->avl);
+                     printf("%s: %g\n", n->key, n->val);
+                     // Outputs "pi: 3.14".
+
+                     // There are no more nodes.
+                     if(avlnext(&n->avl) == NULL)
+                             printf("No more nodes\n");
+
+                     m.key = "meaningoflife";
+                     n = (Node*)avldelete(&t, &m.avl);
+                     printf("%s: %g\n", n->key, n->val);
+                     free(n);
+                     // Outputs "meaningoflife: 54"
+
+                     // A very inefficient update.
+                     n = malloc(sizeof(*n));
+                     n->key = "pi";
+                     n->val = 3.14159;
+                     n = (Node*)avlinsert(&t, &n->avl);
+                     printf("%g\n", n->val);
+                     free(n);
+                     // We get back the old value 3.14 and
+                     // new value 3.14159 is inserted into tree.
+
+                     exit(0);
+              }
+
+SEE ALSO
+       Donald Knuth, ``The Art of Computer Programming'', Volume 3. Section 6.2.3
+
+DIAGNOSTICS
+       Avlcreate returns nil on error.
+
+HISTORY
+       This implementation was originally written for 9front (Dec, 2016).
+
+
+
+                                                                        AVL(3)
 */
 
 #ifdef BSP_AVL_STATIC
@@ -196,7 +193,7 @@ extern "C" {
 
 typedef struct Avl Avl;
 typedef struct Avltree Avltree;
-typedef int (*Avlcmp)(void*, void*);
+typedef int (*Avlcmp)(Avl*, Avl*);
 
 struct Avl {
 	Avl *c[2];
@@ -211,13 +208,13 @@ struct Avltree {
 
 __BSP_AVL_SCOPE Avltree *avlcreate(Avlcmp);
 __BSP_AVL_SCOPE Avltree *avlinit(Avltree*, Avlcmp);
-__BSP_AVL_SCOPE void *avllookup(Avltree*, Avl*);
-__BSP_AVL_SCOPE void *avldelete(Avltree*, Avl*);
-__BSP_AVL_SCOPE void *avlinsert(Avltree*, Avl*);
-__BSP_AVL_SCOPE void *avlnext(Avl*);
-__BSP_AVL_SCOPE void *avlprev(Avl*);
-__BSP_AVL_SCOPE void *avlmin(Avltree*);
-__BSP_AVL_SCOPE void *avlmax(Avltree*);
+__BSP_AVL_SCOPE Avl *avllookup(Avltree*, Avl*);
+__BSP_AVL_SCOPE Avl *avldelete(Avltree*, Avl*);
+__BSP_AVL_SCOPE Avl *avlinsert(Avltree*, Avl*);
+__BSP_AVL_SCOPE Avl *avlnext(Avl*);
+__BSP_AVL_SCOPE Avl *avlprev(Avl*);
+__BSP_AVL_SCOPE Avl *avlmin(Avltree*);
+__BSP_AVL_SCOPE Avl *avlmax(Avltree*);
 
 #endif // __BSP_AVL_H_INCLUDE
 
@@ -252,7 +249,7 @@ avlinit(Avltree *t, Avlcmp cmp)
 
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avllookup(Avltree *t, Avl *k)
 {
 	Avl *h;
@@ -277,7 +274,7 @@ avllookup(Avltree *t, Avl *k)
 static int insert(Avlcmp, Avl*, Avl**, Avl*, Avl**);
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avlinsert(Avltree *t, Avl *k)
 {
 	Avl *old;
@@ -356,7 +353,7 @@ static int deletemin(Avl**, Avl**);
 static int deletefix(int, Avl**);
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avldelete(Avltree *t, Avl *k)
 {
 	Avl *old;
@@ -512,14 +509,14 @@ rotate(int c, Avl *s)
 static Avl *walk1(int, Avl*);
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avlprev(Avl *q)
 {
 	return walk1(0, q);
 }
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avlnext(Avl *q)
 {
 	return walk1(1, q);
@@ -546,14 +543,14 @@ walk1(int a, Avl *q)
 static Avl *bottom(Avltree*,int);
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avlmin(Avltree *t)
 {
 	return bottom(t, 0);
 }
 
 __BSP_AVL_SCOPE
-void*
+Avl*
 avlmax(Avltree *t)
 {
 	return bottom(t, 1);
