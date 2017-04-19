@@ -3,8 +3,8 @@ Copyright (c) 2017 Benjamin Scher Purcell <benjapurcell@gmail.com>
 and is licensed for use under the terms found at
 https://github.com/spewspews/bsp/blob/master/LICENSE
 
-This is a fibonacci heap implementation with one dependency on an ANSI C
-compatible calloc routine.
+This is a fibonacci heap implementation with dependencies on an ANSI C
+compatible calloc and free routine.
 
 Simply '#include "bspfibheap.h"' anywhere you wish to use it
 and in only one file do this:
@@ -18,6 +18,10 @@ before the '#include "bspfibheap.h"' line.
 
 If you would like to provide your own calloc routine do this:
 	#define BSP_FIBHEAP_CALLOC mycalloc
+before the '#include "bspfibheap.h"' line.
+
+If you would like to provide your own calloc routine do this:
+	#define BSP_FIBHEAP_CALLOC myfree
 before the '#include "bspfibheap.h"' line.
 */
 
@@ -268,16 +272,18 @@ removenode(Fibnode *n)
 	return next;
 }
 
-static void
-clearchildren(Fibnode *n)
+static Fibnode*
+detachchildren(Fibnode *p)
 {
 	Fibnode *c;
 
-	c = n->c;
+	c = p->c;
 	if(c != NULL) do {
 		c->p = NULL;
 		c = c->next;
-	} while(c != n->c);
+	} while(c != p->c);
+	p->c = NULL;
+	return c;
 }
 
 __BSP_FIBHEAP_SCOPE
@@ -290,8 +296,7 @@ fibdeletemin(Fibheap *h)
 	if(min == NULL)
 		return 0;
 
-	clearchildren(min);
-	head = concat(removenode(min), min->c);
+	head = concat(removenode(min), detachchildren(min));
 	if(head == NULL) {
 		h->min = NULL;
 		return 0;
@@ -355,9 +360,8 @@ fibdelete(Fibheap *h, Fibnode *n)
 	if(n->p != NULL)
 		cascadingcut(h, n);
 
-	clearchildren(n);
 	removenode(n);
-	concat(h->min, n->c);
+	concat(h->min, detachchildren(n));
 	return 0;
 }
 
