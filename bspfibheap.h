@@ -64,6 +64,7 @@ struct Fibnode {
 __BSP_FIBHEAP_SCOPE Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
 __BSP_FIBHEAP_SCOPE Fibheap *fibcreate(Fibcmp);
 __BSP_FIBHEAP_SCOPE Fibheap *fibfree(Fibheap*);
+__BSP_FIBHEAP_SCOPE Fibheap *fibmeld(Fibheap*, Fibheap*);
 __BSP_FIBHEAP_SCOPE void     fibinsert(Fibheap*, Fibnode*);
 __BSP_FIBHEAP_SCOPE int      fibdeletemin(Fibheap*);
 __BSP_FIBHEAP_SCOPE void     fibdecreasekey(Fibheap*, Fibnode*);
@@ -130,6 +131,14 @@ meld(Fibnode *h1, Fibnode *h2, Fibcmp cmp)
 	return cmp(h1, h2) <= 0 ? h1 : h2;
 }
 
+__BSP_FIBHEAP_SCOPE
+Fibheap*
+fibmeld(Fibheap *h1, Fibheap *h2)
+{
+	h1->min = meld(h1->min, h2->min, h1->cmp);
+	return h1;
+}
+
 static Fibnode*
 initnode(Fibnode *n)
 {
@@ -187,7 +196,7 @@ resizearr(Fibheap *h, int rank)
 static int
 arraylink(Fibheap *h, Fibnode *n)
 {
-	Fibnode *x;
+	Fibnode *m;
 
 	for(;;) {
 		if(h->arrlen <= n->rank) {
@@ -195,13 +204,13 @@ arraylink(Fibheap *h, Fibnode *n)
 				return -1;
 		}
 
-		x = h->arr[n->rank];
-		if(x == NULL) {
+		m = h->arr[n->rank];
+		if(m == NULL) {
 			h->arr[n->rank] = n;
 			return n->rank;
 		}
 		h->arr[n->rank] = NULL;
-		n = link(x, n, h->cmp);
+		n = link(m, n, h->cmp);
 	}
 }
 
