@@ -111,6 +111,7 @@ dijkstra(int start)
 			}
 		}
 	}
+	fibfree(&pq);
 }
 
 void
