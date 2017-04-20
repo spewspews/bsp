@@ -5,4 +5,4 @@ fibheap.man: fibheap.3
 	nroff -Tascii -U -man fibheap.3 | col -bx > fibheap.man
 
 clean:
-	rm -f avl.man avlexample
+	rm -f avl.man avlexample fibheap.man

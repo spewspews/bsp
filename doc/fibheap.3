@@ -1,0 +1,89 @@
+.TH FIBHEAP 3
+.SH NAME
+fibinit
+fibcreate
+fibfree
+fibinsert
+fibdeletemin
+fibdecreasekey
+fibdelete \- Fibonacci heap routines
+.SH SYNOPSIS
+.ta 0.75i 1.5i 2.25i 3i 3.75i 4.5i
+.\" .ta 0.7i +0.7i +0.7i +0.7i +0.7i +0.7i +0.7i
+.EX
+typedef struct Fibheap Fibheap;
+typedef struct Fibnode Fibnode;
+typedef int (*Fibcmp)(Fibnode*, Fibnode*);
+
+struct Fibheap {
+	Fibnode *min;
+	Fibcmp cmp;
+	Fibnode **arr;
+	int arrlen;
+};
+
+struct Fibnode {
+	Fibnode *p, *c, *next, *prev;
+	int rank;
+	char mark;
+};
+
+Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
+Fibheap *fibcreate(Fibcmp);
+Fibheap *fibfree(Fibheap*);
+void     fibinsert(Fibheap*, Fibnode*);
+int      fibdeletemin(Fibheap*);
+void     fibdecreasekey(Fibheap*, Fibnode*);
+int      fibdelete(Fibheap*, Fibnode*);
+.EE
+.SH DESCRIPTION
+These routines allow creation and maintenance of in-memory priority
+queues implemented by a Fibonacci heap.
+.PP
+The intended usage is for a parent structure to contain the
+.B Fibnode
+structure as its first member along with other data to be
+stored in the tree. A pointer to the Fibnode member is passed
+to the library API functions. The API functions then pass
+the pointers to the comparison function and return them
+as return values. See the example below for details on
+how this works in practice.
+.PP
+A heap is initialized by calling
+.I fibheapinit
+with an empty tree and a comparison function as arguments.
+The comparison function receives two pointers to Fibnodes stored
+in the heap and should return an integer less than, equal to, or
+greater than 0 as the first is
+respectively ordered less than,
+equal to, or greater than the second.
+.I Fibheapinit
+allocates memory used for maintenance of the heap
+and
+.I fibfree
+must be called to free the memory.
+A new empty heap can be created by calling
+.I fibcreate
+with a comparison function as an argument. This function
+calls
+.I malloc
+(see
+.IR malloc (3))
+to create the tree and must be freed after
+.I fibfree
+has been called.
+.PP
+The minimum element in the heap is stored in the
+.B min
+member of the
+.B Fibheap
+struct. If
+.B min
+is
+.B NULL
+then the heap is empty.
+.I Fibdeletemin
+removes the minimum element from the heap and queues
+the next item in the
+.B min
+field.
