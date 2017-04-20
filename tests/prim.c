@@ -96,34 +96,6 @@ insertedges(Fibheap *pq, Node *s)
 	}
 }
 
-int
-prim(int start)
-{
-	Fibheap pq;
-	Node *n;
-	Edge *e;
-	int primsum;
-
-	fibinit(&pq, edgecmp);
-	n = nodedata(start);
-	n->intree = 1;
-	primsum = 0;
-	insertedges(&pq, n);
-	while(pq.min != NULL) {
-		e = (Edge*)pq.min;
-		if(fibdeletemin(&pq) < 0)
-			sysfatal("deletion failed");
-		n = e->node;
-		if(n->intree)
-			continue;
-		n->intree = 1;
-		primsum += e->dist;
-		insertedges(&pq, n);
-	}
-	fibfree(&pq);
-	return primsum;
-}
-
 void
 addedge(int s, int d, int dist)
 {
@@ -159,6 +131,34 @@ reallocnodes(int nnodes)
 	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
 	for(ni = nodes.a; ni < nodes.a+nodes.len; ni++)
 		ni->etail = &ni->edges;
+}
+
+int
+prim(int start)
+{
+	Fibheap pq;
+	Node *n;
+	Edge *e;
+	int primsum;
+
+	fibinit(&pq, edgecmp);
+	n = nodedata(start);
+	n->intree = 1;
+	primsum = 0;
+	insertedges(&pq, n);
+	while(pq.min != NULL) {
+		e = (Edge*)pq.min;
+		if(fibdeletemin(&pq) < 0)
+			sysfatal("deletion failed");
+		n = e->node;
+		if(n->intree)
+			continue;
+		n->intree = 1;
+		primsum += e->dist;
+		insertedges(&pq, n);
+	}
+	fibfree(&pq);
+	return primsum;
 }
 
 int

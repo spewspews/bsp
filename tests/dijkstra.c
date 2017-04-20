@@ -85,37 +85,6 @@ nodecmp(Fibnode *a, Fibnode *b)
 }
 
 void
-dijkstra(int start)
-{
-	Fibheap pq;
-	Node *s, *d;
-	Edge *e;
-	int dist;
-
-	fibinit(&pq, nodecmp);
-	s = nodedata(start);
-	s->dist = 0;
-	fibinsert(&pq, &s->fibnode);
-	while(pq.min != NULL) {
-		s = (Node*)pq.min;
-		if(fibdeletemin(&pq) < 0)
-			sysfatal("deletion failed");
-		for(e = s->edges; e != NULL; e = e->next) {
-			dist = s->dist + e->dist;
-			d = e->node;
-			if(d->dist < 0) {
-				d->dist = dist;
-				fibinsert(&pq, &d->fibnode);
-			} else if(d->dist > dist) {
-				d->dist = dist;
-				fibdecreasekey(&pq, &d->fibnode);
-			}
-		}
-	}
-	fibfree(&pq);
-}
-
-void
 addedge(int s, int d, int dist)
 {
 	Edge *e;
@@ -150,6 +119,37 @@ reallocnodes(int nnodes)
 	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
 	for(ni = nodes.a; ni < nodes.a+nodes.len; ni++)
 		ni->etail = &ni->edges;
+}
+
+void
+dijkstra(int start)
+{
+	Fibheap pq;
+	Node *s, *d;
+	Edge *e;
+	int dist;
+
+	fibinit(&pq, nodecmp);
+	s = nodedata(start);
+	s->dist = 0;
+	fibinsert(&pq, &s->fibnode);
+	while(pq.min != NULL) {
+		s = (Node*)pq.min;
+		if(fibdeletemin(&pq) < 0)
+			sysfatal("deletion failed");
+		for(e = s->edges; e != NULL; e = e->next) {
+			dist = s->dist + e->dist;
+			d = e->node;
+			if(d->dist < 0) {
+				d->dist = dist;
+				fibinsert(&pq, &d->fibnode);
+			} else if(d->dist > dist) {
+				d->dist = dist;
+				fibdecreasekey(&pq, &d->fibnode);
+			}
+		}
+	}
+	fibfree(&pq);
 }
 
 void
