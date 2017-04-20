@@ -29,21 +29,22 @@ sysfatal(char *fmt, ...)
 }
 
 typedef struct Edge Edge;
-typedef struct Nodedata Nodedata;
+typedef struct Node Node;
 
 struct Edge {
 	Fibnode fibnode;
-	int node, dist;
 	Edge *next;
+	Node *node;
+	int dist;
 };
 
-struct Nodedata {
+struct Node {
 	Edge *edges, **etail;
-	int intree, node;
+	int intree;
 };
 
 struct {
-	Nodedata *a;
+	Node *a;
 	int len;
 } nodes;
 
@@ -62,7 +63,7 @@ edgealloc(void)
 	return e;
 }
 
-Nodedata*
+Node*
 nodedata(int n)
 {
 	return nodes.a + n-1;
@@ -84,14 +85,12 @@ edgecmp(Fibnode *a, Fibnode *b)
 }
 
 void
-insertedges(Fibheap *pq, Nodedata *s)
+insertedges(Fibheap *pq, Node *s)
 {
 	Edge *e;
-	Nodedata *d;
 
 	for(e = s->edges; e != NULL; e = e->next) {
-		d = nodedata(e->node);
-		if(d->intree)
+		if(e->node->intree)
 			continue;
 		fibinsert(pq, &e->fibnode);
 	}
@@ -101,7 +100,7 @@ int
 prim(int start)
 {
 	Fibheap pq;
-	Nodedata *n;
+	Node *n;
 	Edge *e;
 	int primsum;
 
@@ -114,13 +113,14 @@ prim(int start)
 		e = (Edge*)pq.min;
 		if(fibdeletemin(&pq) < 0)
 			sysfatal("deletion failed");
-		n = nodedata(e->node);
+		n = e->node;
 		if(n->intree)
 			continue;
 		n->intree = 1;
 		primsum += e->dist;
 		insertedges(&pq, n);
 	}
+	fibfree(&pq);
 	return primsum;
 }
 
@@ -128,50 +128,50 @@ void
 addedge(int s, int d, int dist)
 {
 	Edge *e;
-	Nodedata *nd;
+	Node *n;
 
 	e = edgealloc();
-	e->node = d;
+	e->node = nodedata(d);
 	e->dist = dist;
 	e->next = NULL;
-	nd = nodedata(s);
-	*nd->etail = e;
-	nd->etail = &e->next;
+	n = nodedata(s);
+	*n->etail = e;
+	n->etail = &e->next;
 }
 
 void
-initnodedata(Nodedata *nd, int n)
+initnodedata(Node *n)
 {
-	*nd->etail = edgepool;
-	edgepool = nd->edges;
-	nd->edges = NULL;
-	nd->etail = &nd->edges;
-	nd->intree = 0;
-	nd->node = n;
+	*n->etail = edgepool;
+	edgepool = n->edges;
+	n->edges = NULL;
+	n->etail = &n->edges;
+	n->intree = 0;
 }
 
 void
 reallocnodes(int nnodes)
 {
-	Nodedata *ndi;
+	Node *ni;
 
 	nodes.len = 2*nnodes;
 	free(nodes.a);
 	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
-	for(ndi = nodes.a; ndi < nodes.a+nodes.len; ndi++)
-		ndi->etail = &ndi->edges;
+	for(ni = nodes.a; ni < nodes.a+nodes.len; ni++)
+		ni->etail = &ni->edges;
 }
 
 int
 main(void)
 {
-	int nnodes, edges, s, d, dist, start, i;
+	Node *ni;
+	int nnodes, edges, s, d, dist, start;
 
 	scanf("%d %d", &nnodes, &edges);
 	if(nodes.len < nnodes)
 		reallocnodes(nnodes);
-	for(i = 0; i < nnodes; i++)
-		initnodedata(nodes.a + i, i+1);
+	for(ni = nodes.a; ni < nodes.a+nnodes; ni++)
+		initnodedata(ni);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);

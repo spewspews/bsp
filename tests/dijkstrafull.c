@@ -15,6 +15,15 @@ struct Fibnode {
 	char mark;
 };
 
+Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
+Fibheap *fibcreate(Fibcmp);
+Fibheap *fibfree(Fibheap*);
+Fibheap *fibmeld(Fibheap*, Fibheap*);
+void     fibinsert(Fibheap*, Fibnode*);
+int      fibdeletemin(Fibheap*);
+void     fibdecreasekey(Fibheap*, Fibnode*);
+int      fibdelete(Fibheap*, Fibnode*);
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -337,15 +346,15 @@ typedef struct Edge Edge;
 typedef struct Node Node;
 
 struct Edge {
-	Fibnode fibnode;
-	Edge *next;
 	Node *node;
+	Edge *next;
 	int dist;
 };
 
 struct Node {
+	Fibnode fibnode;
 	Edge *edges, **etail;
-	int intree;
+	int dist;
 };
 
 struct {
@@ -375,57 +384,49 @@ nodedata(int n)
 }
 
 int
-edgecmp(Fibnode *a, Fibnode *b)
+nodecmp(Fibnode *a, Fibnode *b)
 {
-	Edge *e, *f;
+	Node *m, *n;
 
-	e = (Edge*)a;
-	f = (Edge*)b;
+	m = (Node*)a;
+	n = (Node*)b;
 
-	if(e->dist < f->dist)
+	if(m->dist < n->dist)
 		return -1;
-	if(e->dist > f->dist)
+	if(m->dist > n->dist)
 		return 1;
 	return 0;
 }
 
 void
-insertedges(Fibheap *pq, Node *s)
-{
-	Edge *e;
-
-	for(e = s->edges; e != NULL; e = e->next) {
-		if(e->node->intree)
-			continue;
-		fibinsert(pq, &e->fibnode);
-	}
-}
-
-int
-prim(int start)
+dijkstra(int start)
 {
 	Fibheap pq;
-	Node *n;
+	Node *s, *d;
 	Edge *e;
-	int primsum;
+	int dist;
 
-	fibinit(&pq, edgecmp);
-	n = nodedata(start);
-	n->intree = 1;
-	primsum = 0;
-	insertedges(&pq, n);
+	fibinit(&pq, nodecmp);
+	s = nodedata(start);
+	s->dist = 0;
+	fibinsert(&pq, &s->fibnode);
 	while(pq.min != NULL) {
-		e = (Edge*)pq.min;
+		s = (Node*)pq.min;
 		if(fibdeletemin(&pq) < 0)
 			sysfatal("deletion failed");
-		n = e->node;
-		if(n->intree)
-			continue;
-		n->intree = 1;
-		primsum += e->dist;
-		insertedges(&pq, n);
+		for(e = s->edges; e != NULL; e = e->next) {
+			dist = s->dist + e->dist;
+			d = e->node;
+			if(d->dist < 0) {
+				d->dist = dist;
+				fibinsert(&pq, &d->fibnode);
+			} else if(d->dist > dist) {
+				d->dist = dist;
+				fibdecreasekey(&pq, &d->fibnode);
+			}
+		}
 	}
-	return primsum;
+	fibfree(&pq);
 }
 
 void
@@ -450,7 +451,7 @@ initnodedata(Node *n)
 	edgepool = n->edges;
 	n->edges = NULL;
 	n->etail = &n->edges;
-	n->intree = 0;
+	n->dist = -1;
 }
 
 void
@@ -465,17 +466,17 @@ reallocnodes(int nnodes)
 		ni->etail = &ni->edges;
 }
 
-int
-main(void)
+void
+testcase(void)
 {
 	Node *ni;
-	int nnodes, edges, s, d, dist, start;
+	int nnodes, edges, s, d, dist, start, i;
 
 	scanf("%d %d", &nnodes, &edges);
 	if(nodes.len < nnodes)
 		reallocnodes(nnodes);
-	for(ni = nodes.a; ni < nodes.a+nnodes; ni++)
-		initnodedata(ni);
+	for(i = 0; i < nnodes; i++)
+		initnodedata(nodes.a + i);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);
@@ -484,5 +485,26 @@ main(void)
 	}
 
 	scanf("%d", &start);
-	printf("%d\n", prim(start));
+	dijkstra(start);
+	i = 0;
+	for(ni = nodes.a; ni < nodes.a + nnodes; ni++) {
+		if(ni->dist == 0)
+			continue;
+		if(i++ > 0)
+			printf(" ");
+		printf("%d", ni->dist);
+	}
+	printf("\n");
+}
+
+int
+main(void)
+{
+	int cases;
+
+	scanf("%d", &cases);
+	while(cases-- > 0)
+		testcase();
+
+	exit(0);
 }

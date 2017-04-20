@@ -29,21 +29,22 @@ sysfatal(char *fmt, ...)
 }
 
 typedef struct Edge Edge;
-typedef struct Nodedata Nodedata;
+typedef struct Node Node;
 
 struct Edge {
-	int node, dist;
+	Node *node;
 	Edge *next;
+	int dist;
 };
 
-struct Nodedata {
+struct Node {
 	Fibnode fibnode;
 	Edge *edges, **etail;
-	int dist, node;
+	int dist;
 };
 
 struct {
-	Nodedata *a;
+	Node *a;
 	int len;
 } nodes;
 
@@ -62,7 +63,7 @@ edgealloc(void)
 	return e;
 }
 
-Nodedata*
+Node*
 nodedata(int n)
 {
 	return nodes.a + n-1;
@@ -71,10 +72,10 @@ nodedata(int n)
 int
 nodecmp(Fibnode *a, Fibnode *b)
 {
-	Nodedata *m, *n;
+	Node *m, *n;
 
-	m = (Nodedata*)a;
-	n = (Nodedata*)b;
+	m = (Node*)a;
+	n = (Node*)b;
 
 	if(m->dist < n->dist)
 		return -1;
@@ -87,7 +88,7 @@ void
 dijkstra(int start)
 {
 	Fibheap pq;
-	Nodedata *s, *d;
+	Node *s, *d;
 	Edge *e;
 	int dist;
 
@@ -96,12 +97,12 @@ dijkstra(int start)
 	s->dist = 0;
 	fibinsert(&pq, &s->fibnode);
 	while(pq.min != NULL) {
-		s = (Nodedata*)pq.min;
+		s = (Node*)pq.min;
 		if(fibdeletemin(&pq) < 0)
 			sysfatal("deletion failed");
 		for(e = s->edges; e != NULL; e = e->next) {
-			d = nodedata(e->node);
 			dist = s->dist + e->dist;
+			d = e->node;
 			if(d->dist < 0) {
 				d->dist = dist;
 				fibinsert(&pq, &d->fibnode);
@@ -118,51 +119,50 @@ void
 addedge(int s, int d, int dist)
 {
 	Edge *e;
-	Nodedata *nd;
+	Node *n;
 
 	e = edgealloc();
-	e->node = d;
+	e->node = nodedata(d);
 	e->dist = dist;
 	e->next = NULL;
-	nd = nodedata(s);
-	*nd->etail = e;
-	nd->etail = &e->next;
+	n = nodedata(s);
+	*n->etail = e;
+	n->etail = &e->next;
 }
 
 void
-initnodedata(Nodedata *nd, int n)
+initnodedata(Node *n)
 {
-	*nd->etail = edgepool;
-	edgepool = nd->edges;
-	nd->edges = NULL;
-	nd->etail = &nd->edges;
-	nd->dist = -1;
-	nd->node = n;
+	*n->etail = edgepool;
+	edgepool = n->edges;
+	n->edges = NULL;
+	n->etail = &n->edges;
+	n->dist = -1;
 }
 
 void
 reallocnodes(int nnodes)
 {
-	Nodedata *ndi;
+	Node *ni;
 
 	nodes.len = 2*nnodes;
 	free(nodes.a);
 	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
-	for(ndi = nodes.a; ndi < nodes.a+nodes.len; ndi++)
-		ndi->etail = &ndi->edges;
+	for(ni = nodes.a; ni < nodes.a+nodes.len; ni++)
+		ni->etail = &ni->edges;
 }
 
 void
 testcase(void)
 {
-	Nodedata *ndi;
+	Node *ni;
 	int nnodes, edges, s, d, dist, start, i;
 
 	scanf("%d %d", &nnodes, &edges);
 	if(nodes.len < nnodes)
 		reallocnodes(nnodes);
 	for(i = 0; i < nnodes; i++)
-		initnodedata(nodes.a + i, i+1);
+		initnodedata(nodes.a + i);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);
@@ -173,12 +173,12 @@ testcase(void)
 	scanf("%d", &start);
 	dijkstra(start);
 	i = 0;
-	for(ndi = nodes.a; ndi < nodes.a + nnodes; ndi++) {
-		if(ndi->node == start)
+	for(ni = nodes.a; ni < nodes.a + nnodes; ni++) {
+		if(ni->dist == 0)
 			continue;
 		if(i++ > 0)
 			printf(" ");
-		printf("%d", ndi->dist);
+		printf("%d", ni->dist);
 	}
 	printf("\n");
 }

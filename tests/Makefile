@@ -4,6 +4,6 @@ CC=clang
 all: avltest fibheaptest dijkstra prim
 
 clean:
-	rm -f *.o avltest fibheaptest dijkstra prim
+	rm -f *.o avltest fibheaptest dijkstra prim primfull dijkstrafull
 
 .PHONY: clean man
