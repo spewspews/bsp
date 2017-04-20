@@ -4,7 +4,7 @@ and is licensed for use under the terms found at
 https://github.com/spewspews/bsp/blob/master/LICENSE
 
 This is a fibonacci heap implementation with dependencies on an ANSI C
-compatible calloc and free routine.
+compatible calloc and free routines.
 
 Simply '#include "bspfibheap.h"' anywhere you wish to use it
 and in only one file do this:
@@ -46,7 +46,7 @@ before the '#include "bspfibheap.h"' line.
 
 typedef struct Fibheap Fibheap;
 typedef struct Fibnode Fibnode;
-typedef int (*Fibcmp)(void*, void*);
+typedef int (*Fibcmp)(Fibnode*, Fibnode*);
 
 struct Fibheap {
 	Fibcmp cmp;
@@ -61,10 +61,11 @@ struct Fibnode {
 	char mark;
 };
 
-__BSP_FIBHEAP_SCOPE int      fibdeletemin(Fibheap*);
+__BSP_FIBHEAP_SCOPE Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
 __BSP_FIBHEAP_SCOPE Fibheap *fibcreate(Fibcmp);
 __BSP_FIBHEAP_SCOPE Fibheap *fibfree(Fibheap*);
 __BSP_FIBHEAP_SCOPE void     fibinsert(Fibheap*, Fibnode*);
+__BSP_FIBHEAP_SCOPE int      fibdeletemin(Fibheap*);
 __BSP_FIBHEAP_SCOPE void     fibdecreasekey(Fibheap*, Fibnode*);
 __BSP_FIBHEAP_SCOPE int      fibdelete(Fibheap*, Fibnode*);
 
@@ -179,7 +180,7 @@ resizearr(Fibheap *h, int rank)
 	h->arr = BSP_FIBHEAP_CALLOC(h->arrlen, sizeof(*h->arr));
 	if(h->arr == NULL)
 		return -1;
-	memcpy(h->arr, a, alen);
+	memcpy(h->arr, a, alen*sizeof(*h->arr));
 	return 0;
 }
 

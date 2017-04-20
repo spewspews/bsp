@@ -1,9 +1,32 @@
+// This solves the problem posed at https://www.hackerrank.com/challenges/dijkstrashortreach
+// The implementation of the Dijkstra algorithm is the function dijkstra. Everything else
+// is setup.
+
 #define BSP_FIBHEAP_IMPLEMENTATION
 #include "../bspfibheap.h"
 
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+void
+sysfatal(char *fmt, ...)
+{
+	char buf[1024];
+	int w;
+	va_list va;
+
+	w = snprintf(buf, sizeof(buf), "dijkstra: ");
+	va_start(va, fmt);
+	w += vsnprintf(buf+w, sizeof(buf)-w, fmt, va);
+	va_end(va);
+	snprintf(buf+w, sizeof(buf)-w, ": %s", strerror(errno));
+
+	fprintf(stderr, "%s\n", buf);
+	exit(1);
+}
 
 typedef struct Edge Edge;
 typedef struct Nodedata Nodedata;
@@ -22,7 +45,7 @@ struct Nodedata {
 struct {
 	Nodedata *a;
 	int len;
-} nodesdata;
+} nodes;
 
 Edge *edgepool;
 
@@ -39,17 +62,55 @@ edgealloc(void)
 	return e;
 }
 
-void
-edgefree(Edge *e)
-{
-	e->next = edgepool;
-	edgepool = e;
-}
-
 Nodedata*
 nodedata(int n)
 {
-	return nodesdata.a + n-1;
+	return nodes.a + n-1;
+}
+
+int
+nodecmp(Fibnode *a, Fibnode *b)
+{
+	Nodedata *m, *n;
+
+	m = (Nodedata*)a;
+	n = (Nodedata*)b;
+
+	if(m->dist < n->dist)
+		return -1;
+	if(m->dist > n->dist)
+		return 1;
+	return 0;
+}
+
+void
+dijkstra(int start)
+{
+	Fibheap pq;
+	Nodedata *s, *d;
+	Edge *e;
+	int dist;
+
+	fibinit(&pq, nodecmp);
+	s = nodedata(start);
+	s->dist = 0;
+	fibinsert(&pq, &s->fibnode);
+	while(pq.min != NULL) {
+		s = (Nodedata*)pq.min;
+		if(fibdeletemin(&pq) < 0)
+			sysfatal("deletion failed");
+		for(e = s->edges; e != NULL; e = e->next) {
+			d = nodedata(e->node);
+			dist = s->dist + e->dist;
+			if(d->dist < 0) {
+				d->dist = dist;
+				fibinsert(&pq, &d->fibnode);
+			} else if(d->dist > dist) {
+				d->dist = dist;
+				fibdecreasekey(&pq, &d->fibnode);
+			}
+		}
+	}
 }
 
 void
@@ -68,11 +129,6 @@ addedge(int s, int d, int dist)
 }
 
 void
-dijkstra(int start)
-{
-}
-
-void
 initnodedata(Nodedata *nd, int n)
 {
 	*nd->etail = edgepool;
@@ -84,23 +140,28 @@ initnodedata(Nodedata *nd, int n)
 }
 
 void
-reallocnodesdata(int nodes)
+reallocnodes(int nnodes)
 {
-	nodesdata.len = 2*nodes;
-	free(nodesdata.a);
-	nodesdata.a = calloc(nodesdata.len, sizeof(*nodesdata.a));
+	Nodedata *ndi;
+
+	nodes.len = 2*nnodes;
+	free(nodes.a);
+	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
+	for(ndi = nodes.a; ndi < nodes.a+nodes.len; ndi++)
+		ndi->etail = &ndi->edges;
 }
 
 void
 testcase(void)
 {
-	int nodes, edges, s, d, dist, start, i;
+	Nodedata *ndi;
+	int nnodes, edges, s, d, dist, start, i;
 
-	scanf("%d %d", &nodes, &edges);
-	if(nodesdata.len < nodes)
-		reallocnodesdata(nodes);
-	for(i = 0; i < nodes; i++)
-		initnodedata(&nodesdata.a[i], i+1);
+	scanf("%d %d", &nnodes, &edges);
+	if(nodes.len < nnodes)
+		reallocnodes(nnodes);
+	for(i = 0; i < nnodes; i++)
+		initnodedata(nodes.a + i, i+1);
 
 	while(edges-- > 0) {
 		scanf("%d %d %d", &s, &d, &dist);
@@ -110,6 +171,15 @@ testcase(void)
 
 	scanf("%d", &start);
 	dijkstra(start);
+	i = 0;
+	for(ndi = nodes.a; ndi < nodes.a + nnodes; ndi++) {
+		if(ndi->node == start)
+			continue;
+		if(i++ > 0)
+			printf(" ");
+		printf("%d", ndi->dist);
+	}
+	printf("\n");
 }
 
 int
@@ -118,7 +188,6 @@ main(void)
 	int cases;
 
 	scanf("%d", &cases);
-	printf("cases %d\n", cases);
 	while(cases-- > 0)
 		testcase();
 

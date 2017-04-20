@@ -14,12 +14,12 @@ struct Int {
 };
 
 int
-intcmp(void *x, void *y)
+intcmp(Fibnode *x, Fibnode *y)
 {
 	Int *s, *t;
 
-	s = x;
-	t = y;
+	s = (Int*)x;
+	t = (Int*)y;
 
 	if(s->i < t->i)
 		return -1;
