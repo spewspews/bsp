@@ -1,15 +1,9 @@
-CFLAGS=-Wall -Wpedantic -Wextra -std=c11 -g
+CFLAGS=-Wall -Wpedantic -Wextra -O2 -std=c11 -g
 CC=clang
 
-all: avltest fibheaptest
-
-avltest: avltest.o
-
-fibheaptest: fibheaptest.o
-
-dijkstra: dijkstra.o
+all: avltest fibheaptest dijkstra prim
 
 clean:
-	rm -f *.o avltest fibheaptest dijkstra
+	rm -f *.o avltest fibheaptest dijkstra prim
 
 .PHONY: clean man
