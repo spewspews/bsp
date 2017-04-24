@@ -29,12 +29,13 @@ struct Fibnode {
 };
 
 Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
-Fibheap *fibcreate(Fibcmp);
-Fibheap *fibfree(Fibheap*);
-void     fibinsert(Fibheap*, Fibnode*);
-int      fibdeletemin(Fibheap*);
-void     fibdecreasekey(Fibheap*, Fibnode*);
-int      fibdelete(Fibheap*, Fibnode*);
+Fibheap *fibcreate(Fibcmp cmp);
+Fibheap *fibfree(Fibheap *heap);
+void     fibinsert(Fibheap *heap, Fibnode *node);
+int      fibdeletemin(Fibheap *node);
+void     fibdecreasekey(Fibheap *heap, Fibnode *node);
+int      fibdelete(Fibheap *heap, Fibnode *node);
+
 .EE
 .SH DESCRIPTION
 These routines allow creation and maintenance of in-memory priority
@@ -45,8 +46,8 @@ The intended usage is for a parent structure to contain the
 structure as its first member along with other data to be
 stored in the tree. A pointer to the Fibnode member is passed
 to the library API functions. The API functions then pass
-the pointers to the comparison function and return them
-as return values. See the example below for details on
+these pointers to the comparison function and store them
+in the heap. See the example below for details on
 how this works in practice.
 .PP
 A heap is initialized by calling
@@ -86,4 +87,44 @@ then the heap is empty.
 removes the minimum element from the heap and queues
 the next item in the
 .B min
-field.
+field. This may require a memory allocation and will return
+.B -1
+in case of failure.
+Keys in a node can be changed as long as the new value
+is not greater than the old value. In that case
+.I Fibdecreasekey
+must be called to
+re-establish heap order on the
+.BR heap .
+Any node can be removed from the heap by calling
+.IR fibdelete .
+In the case where the
+.B node
+is the minimum node, allocation may occur and the function
+returns
+.B -1
+in case of failure.
+.SH EXAMPLES
+Typical usage is to embed the
+.B Fibnode
+structure as the first member of a structure
+that holds data to be stored in the tree.
+Then pass a pointer to this member to the library
+functions.
+.IP
+.EX
+.sy sed 's;\\\\;\\\\\\\\;' fibexample.c > /tmp/example
+.so /tmp/example
+.sy rm /tmp/example
+.EE
+.SH SEE ALSO
+.nf
+Michael L. Fredman and Robert Endre Tarjan. 1987. Fibonacci heaps and their uses in improved network optimization algorithms. J. ACM 34, 3 (July 1987), 596-615. DOI=http://dx.doi.org/10.1145/28869.28874
+.SH DIAGNOSTICS
+.IR fibinit ,
+.IR fibdeletemin ,
+and
+.I fibdelete
+returns
+.B NULL
+on error.

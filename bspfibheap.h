@@ -23,6 +23,169 @@ before the '#include "bspfibheap.h"' line.
 If you would like to provide your own calloc routine do this:
 	#define BSP_FIBHEAP_CALLOC myfree
 before the '#include "bspfibheap.h"' line.
+
+FIBHEAP(3)                 Library Functions Manual                 FIBHEAP(3)
+
+
+
+NAME
+       fibinit  fibcreate  fibfree  fibinsert fibdeletemin fibdecreasekey fib-
+       delete - Fibonacci heap routines
+
+SYNOPSIS
+       typedef struct Fibheap Fibheap;
+       typedef struct Fibnode Fibnode;
+       typedef int (*Fibcmp)(Fibnode*, Fibnode*);
+
+       struct Fibheap {
+              Fibnode *min;
+              Fibcmp cmp;
+              Fibnode **arr;
+              int arrlen;
+       };
+
+       struct Fibnode {
+              Fibnode *p, *c, *next, *prev;
+              int rank;
+              char mark;
+       };
+
+       Fibheap* fibinit(Fibheap *heap, Fibcmp cmp);
+       Fibheap *fibcreate(Fibcmp cmp);
+       Fibheap *fibfree(Fibheap *heap);
+       void     fibinsert(Fibheap *heap, Fibnode *node);
+       int      fibdeletemin(Fibheap *node);
+       void     fibdecreasekey(Fibheap *heap, Fibnode *node);
+       int      fibdelete(Fibheap *heap, Fibnode *node);
+
+
+DESCRIPTION
+       These routines allow creation and  maintenance  of  in-memory  priority
+       queues implemented by a Fibonacci heap.
+
+       The  intended  usage  is  for a parent structure to contain the Fibnode
+       structure as its first member along with other data to be stored in the
+       tree.  A  pointer  to  the  Fibnode member is passed to the library API
+       functions. The API functions then pass these pointers to the comparison
+       function  and store them in the heap. See the example below for details
+       on how this works in practice.
+
+       A heap is initialized by calling fibheapinit with an empty tree  and  a
+       comparison function as arguments.  The comparison function receives two
+       pointers to Fibnodes stored in the heap and should  return  an  integer
+       less  than,  equal  to,  or greater than 0 as the first is respectively
+       ordered less than, equal to, or greater than the  second.   Fibheapinit
+       allocates  memory  used for maintenance of the heap and fibfree must be
+       called to free the memory.  A new empty heap can be created by  calling
+       fibcreate  with  a  comparison  function  as an argument. This function
+       calls malloc (see malloc(3)) to create the tree and must be freed after
+       fibfree has been called.
+
+       The minimum element in the heap is stored in the min member of the Fib-
+       heap struct. If min is NULL  then  the  heap  is  empty.   Fibdeletemin
+       removes  the  minimum element from the heap and queues the next item in
+       the min field. This may require a memory allocation and will return  -1
+       in  case  of failure.  Keys in a node can be changed as long as the new
+       value is not greater than the old value. In  that  case  Fibdecreasekey
+       must be called to re-establish heap order on the heap.  Any node can be
+       removed from the heap by calling fibdelete.  In the case where the node
+       is  the  minimum node, allocation may occur and the function returns -1
+       in case of failure.
+
+EXAMPLES
+       Typical usage is to embed the Fibnode structure as the first member  of
+       a  structure  that  holds  data  to be stored in the tree.  Then pass a
+       pointer to this member to the library functions.
+
+              #define BSP_FIBHEAP_IMPLEMENTATION
+              #include "../bspfibheap.h"
+
+              #include <stdio.h>
+              #include <stdlib.h>
+
+              typedef struct Int Int;
+              struct Int {
+                     Fibnode fib;
+                     int i;
+              };
+
+              int
+              intcmp(Fibnode *x, Fibnode *y)
+              {
+                     Int *s, *t;
+
+                     s = (Int*)x;
+                     t = (Int*)y;
+
+                     if(s->i < t->i)
+                             return -1;
+                     if(s->i > t->i)
+                             return 1;
+                     return 0;
+              }
+
+              int
+              main(void)
+              {
+                     Fibheap heap;
+                     Int *node;
+
+                     fibinit(&heap, intcmp);
+
+                     // Insert and delete min.
+                     node = malloc(sizeof(*node));
+                     node->i = 10;
+                     fibinsert(&heap, &node->fib);
+
+                     node = malloc(sizeof(*node));
+                     node->i = 5;
+                     fibinsert(&heap, &node->fib);
+
+                     node = malloc(sizeof(*node));
+                     node->i = 15;
+                     fibinsert(&heap, &node->fib);
+
+                     while(heap.min != NULL) {
+                             node = (Int*)heap.min;
+                             printf("%d\n", node->i);
+                             fibdeletemin(&heap);
+                             free(node);
+                     }
+
+                     // Decrease key.
+                     node = malloc(sizeof(*node));
+                     node->i = 10;
+                     fibinsert(&heap, &node->fib);
+
+                     node = malloc(sizeof(*node));
+                     node->i = 15;
+                     fibinsert(&heap, &node->fib);
+
+                     node = (Int*)heap.min;
+                     printf("%d\n", node->i);
+
+                     node->i = 5;
+                     fibdecreasekey(&heap, &node->fib);
+
+                     node = (Int*)heap.min;
+                     printf("%d\n", node->i);
+              }
+              // Output:
+              // 5
+              // 10
+              // 15
+              // 10
+              // 5
+
+SEE ALSO
+       Michael L. Fredman and Robert Endre Tarjan. 1987. Fibonacci heaps and their uses in improved network optimization algorithms. J. ACM 34, 3 (July 1987), 596-615. DOI=http://dx.doi.org/10.1145/28869.28874
+
+DIAGNOSTICS
+       fibinit, fibdeletemin, and fibdelete returns NULL on error.
+
+
+
+                                                                    FIBHEAP(3)
 */
 
 #ifdef BSP_FIBHEAP_STATIC
