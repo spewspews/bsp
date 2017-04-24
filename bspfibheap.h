@@ -194,16 +194,6 @@ DIAGNOSTICS
 #define __BSP_FIBHEAP_SCOPE
 #endif
 
-#ifndef BSP_FIBHEAP_CALLOC
-#include <stdlib.h>
-#define BSP_FIBHEAP_CALLOC calloc
-#endif
-
-#ifndef BSP_FIBHEAP_FREE
-#include <stdlib.h>
-#define BSP_FIBHEAP_FREE free
-#endif
-
 #ifndef __BSP_FIBHEAP_H_INCLUDE
 #define __BSP_FIBHEAP_H_INCLUDE
 
@@ -236,6 +226,16 @@ __BSP_FIBHEAP_SCOPE int      fibdelete(Fibheap*, Fibnode*);
 #endif // __BSP_AVL_H_INCLUDE
 
 #ifdef BSP_FIBHEAP_IMPLEMENTATION
+
+#ifndef BSP_FIBHEAP_CALLOC
+#include <stdlib.h>
+#define BSP_FIBHEAP_CALLOC calloc
+#endif
+
+#ifndef BSP_FIBHEAP_FREE
+#include <stdlib.h>
+#define BSP_FIBHEAP_FREE free
+#endif
 
 #include <string.h>
 
