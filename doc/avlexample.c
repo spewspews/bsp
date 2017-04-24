@@ -46,7 +46,7 @@ main(void)
 	avlinsert(&t, &n->avl);
 
 	m.key = "meaningoflife";
-	n = (Node*)avllookup(&t, &m.avl);
+	n = (Node*)avllookup(&t, &m.avl, 0);
 
 	printf("%s: %g\n", n->key, n->val);
 
@@ -74,7 +74,7 @@ main(void)
 	free(n);
 
 	m.key = "pi";
-	n = (Node*)avllookup(&t, &m.avl);
+	n = (Node*)avllookup(&t, &m.avl, 0);
 
 	printf("new node: %s: %g\n", n->key, n->val);
 	
