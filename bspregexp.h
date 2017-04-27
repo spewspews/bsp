@@ -1,19 +1,12 @@
-#ifdef BSP_REGEXP_STATIC
-#define __BSP_REGEXP_SCOPE static
-#else
-#define __BSP_REGEXP_SCOPE
-#endif
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <setjmp.h>
+#include <wchar.h>
 
-#ifndef __BSP_REGEXP_H_INCLUDE
-#define __BSP_REGEXP_H_INCLUDE
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-enum
-{
-	OANY = 0,
+enum {
+	OANY,
 	OBOL,
 	OCLASS,
 	OEOL,
@@ -32,10 +25,17 @@ typedef struct Rethread Rethread;
 
 struct Resub
 {
-	char *sp;
-	char *ep;
+	union
+	{
+		char *sp;
+		wchar_t *rsp;
+	};
+	union
+	{
+		char *ep;
+		wchar_t *rep;
+	};
 };
-
 struct Reprog
 {
 	Reinst *startinst;
@@ -45,31 +45,14 @@ struct Reprog
 	int nthr;
 };
 
-__BSP_REGEXP_SCOPE Reprog* regcomp(char *regex);
-__BSP_REGEXP_SCOPE Reprog* regcomplit(char *regex);
-__BSP_REGEXP_SCOPE Reprog* regcompnl(char *regex);
-__BSP_REGEXP_SCOPE void    regerror(char *err);
-__BSP_REGEXP_SCOPE int     regexec(Reprog *regexp, char *matchstr, Resub *match, int msize);
-__BSP_REGEXP_SCOPE void    regsub(char *source, char *dest, int destlen, Resub *match, int msize);
-
-#endif // __BSP_REGEXP_H_INCLUDE
-
-#ifdef BSP_REGEXP_IMPLEMENTATION
-
-#ifndef BSP_REGEXP_CALLOC
-#include <stdlib.h>
-#define BSP_REGEXP_CALLOC calloc
-#endif
-
-#ifndef BSP_REGEXP_FREE
-#include <stdlib.h>
-#define BSP_REGEXP_FREE free
-#endif
-
-#include <assert.h>
-#include <setjmp.h>
-#include <stdio.h>
-#include <string.h>
+Reprog* regcomp(char*);
+Reprog* regcomplit(char*);
+Reprog* regcompnl(char*);
+void    regerror(char*);
+int     regexec(Reprog*, char*, Resub*, int);
+void	regsub(char*, char*, int, Resub*, int);
+int     rregexec(Reprog*, wchar_t*, Resub*, int);
+void    rregsub(wchar_t*, wchar_t*, int, Resub*, int);
 
 enum {
 	LANY = 0,
@@ -111,24 +94,24 @@ struct Parselex {
 	jmp_buf exitenv;
 	/* Lex */
 	void (*getnextr)(Parselex*);
-	char *rawexp;
+	char *regstr;
 	char *orig;
-	char rune;
-	char peek;
+	wchar_t rune;
+	wchar_t peek;
 	int peeklex;
 	int done;
 	int literal;
-	char cpairs[400+2];
+	wchar_t cpairs[400+2];
 	int nc;
 };
 
 struct Renode {
 	int op;
 	Renode *left;
-	char r;
+	wchar_t r;
 	union
 	{
-		char r1;
+		wchar_t r1;
 		int sub;
 		Renode *right;
 	};
@@ -148,12 +131,12 @@ struct Reinst {
 	Reinst *a;
 	union
 	{
-		char r;
+		wchar_t r;
 		int sub;
 	};
 	union
 	{
-		char r1;
+		wchar_t r1;
 		Reinst *b;
 	};
 };
@@ -251,13 +234,13 @@ e2(Parselex *plex)
 	n = e3(plex);
 	while(lex(plex) == LREP) {
 		switch(plex->rune) {
-		case '*':
+		case L'*':
 			n = node(plex, TSTAR, n, NULL);
 			break;
-		case '+':
+		case L'+':
 			n = node(plex, TPLUS, n, NULL);
 			break;
-		case '?':
+		case L'?':
 			n = node(plex, TQUES, n, NULL);
 			break;
 		}
@@ -319,7 +302,7 @@ static Parselex*
 initplex(Parselex *plex, char *regstr, int lit)
 {
 	plex->getnextr = lit ? getnextrlit : getnextr;
-	plex->rawexp = plex->orig = regstr;
+	plex->regstr = plex->orig = regstr;
 	plex->sub = 0;
 	plex->instrs = 0;
 	plex->peek = 0;
@@ -335,9 +318,9 @@ regcomp1(char *regstr, int nl, int lit)
 	Renode *parsetr;
 	int regstrlen, maxthr;
 
-	regstrlen = strlen(regstr);
+	regstrlen = mbstowcs(NULL, regstr, 0);
 	initplex(&plex, regstr, lit);
-	plex.nodes = BSP_REGEXP_CALLOC(sizeof(*plex.nodes), regstrlen*2);
+	plex.nodes = calloc(sizeof(*plex.nodes), regstrlen*2);
 	if(plex.nodes == NULL)
 		return NULL;
 	plex.next = plex.nodes;
@@ -351,9 +334,9 @@ regcomp1(char *regstr, int nl, int lit)
 	parsetr = node(&plex, TSUB, e0(&plex), NULL);
 
 //	prtree(parsetr, 0, 1);
-	reprog = BSP_REGEXP_CALLOC(1, sizeof(Reprog) +
-	                              sizeof(Reinst) * plex.instrs +
-	                              sizeof(Rethread) * maxthr);
+	reprog = malloc(sizeof(Reprog) +
+	                sizeof(Reinst) * plex.instrs +
+	                sizeof(Rethread) * maxthr);
 	reprog->len = plex.instrs;
 	reprog->nthr = maxthr;
 	reprog->startinst = compile(parsetr, reprog, nl);
@@ -479,15 +462,15 @@ getnextr(Parselex *l)
 {
 	l->literal = 0;
 	if(l->done) {
-		l->rune = '\0';
+		l->rune = 0;
 		return;
 	}
-	l->rune = *l->rawexp++;
+	l->regstr += mbtowc(&l->rune, l->regstr, MB_CUR_MAX);
 	if(l->rune == L'\\') {
-		l->rune = *l->rawexp++;
+		l->regstr += mbtowc(&l->rune, l->regstr, MB_CUR_MAX);
 		l->literal = 1;
 	}
-	if(*l->rawexp == 0)
+	if(*l->regstr == 0)
 		l->done = 1;
 	return;
 }
@@ -501,8 +484,8 @@ getnextrlit(Parselex *l)
 		l->rune = 0;
 		return;
 	}
-	l->rune = *l->rawexp++;
-	if(*l->rawexp == 0)
+	l->regstr += mbtowc(&l->rune, l->regstr, MB_CUR_MAX);
+	if(*l->regstr == 0)
 		l->done = 1;
 	return;
 }
@@ -518,25 +501,25 @@ lex(Parselex *l)
 	if(l->literal)
 		return l->peeklex = LRUNE;
 	switch(l->rune){
-	case '\0':
+	case 0:
 		return l->peeklex = LEND;
-	case '*':
-	case '?':
-	case '+':
+	case L'*':
+	case L'?':
+	case L'+':
 		return l->peeklex = LREP;
-	case '|':
+	case L'|':
 		return l->peeklex = LOR;
-	case '.':
+	case L'.':
 		return l->peeklex = LANY;
-	case '(':
+	case L'(':
 		return l->peeklex = LLPAR;
-	case ')':
+	case L')':
 		return l->peeklex = LRPAR;
-	case '^':
+	case L'^':
 		return l->peeklex = LBOL;
-	case '$':
+	case L'$':
 		return l->peeklex = LEOL;
-	case '[':
+	case L'[':
 		getclass(l);
 		return l->peeklex = LCLASS;
 	}
@@ -546,22 +529,22 @@ lex(Parselex *l)
 static int
 pcmp(const void *va, const void *vb)
 {
-	int c;
-	const int *a, *b;
+	long long n;
+	const wchar_t *a, *b;
 
 	a = va;
 	b = vb;
 
-	c = b[0] - a[0];
-	if(c)
-		return c;
-	return b[1] - a[1];
+	n = (long long)b[0] - (long long)a[0];
+	if(n)
+		return n;
+	return (long long)b[1] - (long long)a[1];
 }
 
 static void
 getclass(Parselex *l)
 {
-	char *p, *q, t;
+	wchar_t *p, *q, t;
 
 	l->nc = 0;
 	getnextrlit(l);
@@ -608,7 +591,7 @@ getclass(Parselex *l)
 			getnextrlit(l);
 		} else
 			p[1] = p[0];
-		if(p >= l->cpairs + sizeof(l->cpairs) - 2) {
+		if(p >= l->cpairs + sizeof(l->cpairs)/sizeof(*l->cpairs) - 2) {
 			regerror("Class too big\n");
 			longjmp(l->exitenv, 1);
 		}
@@ -636,14 +619,14 @@ static Renode*
 buildclassn(Parselex *l)
 {
 	Renode *n;
-	char *p;
+	wchar_t *p;
 	int i;
 
 	i = 0;
 	p = l->cpairs;
 	n = node(l, TCLASS, NULL, NULL);
 	n->r = p[1] + 1;
-	n->r1 = -1;
+	n->r1 = WCHAR_MAX;
 	n->nclass = i++;
 
 	for(; *p != 0; p += 2) {
@@ -660,12 +643,12 @@ static Renode*
 buildclass(Parselex *l)
 {
 	Renode *n;
-	char *p;
+	wchar_t *p;
 	int i;
 
 	i = 0;
 	n = node(l, TCLASS, NULL, NULL);
-	n->r = -1;
+	n->r = WEOF;
 	n->nclass = i++;
 
 	for(p = l->cpairs; *p != 0; p += 2) {
@@ -727,7 +710,7 @@ prtree(Renode *tree, int d, int f)
 		prtree(tree->left, d+1, 1);
 		break;
 	case TRUNE:
-		printf("TRUNE: %c\n", tree->r);
+		printf("TRUNE: %C\n", tree->r);
 		break;
 	case TNOTNL:
 		printf("TNOTNL: !\\n\n");
@@ -739,4 +722,184 @@ prtree(Renode *tree, int d, int f)
 	}
 }
 
-#endif // BSP_REGEXP_IMPLEMENTATION
+typedef struct RethreadQ RethreadQ;
+struct RethreadQ {
+	Rethread *head;
+	Rethread **tail;
+};
+
+int
+regexec(Reprog *p, char *str, Resub *sem, int msize)
+{
+	RethreadQ lists[2], *clist, *nlist, *tmp;
+	Rethread *t, *next, *pool, *avail;
+	Reinst *ci;
+	wchar_t r;
+	char *sp, *ep, endc;
+	int i, matchgen, gen;
+
+	memset(p->threads, 0, sizeof(Rethread)*p->nthr);
+	if(msize > NSUBEXPM)
+		msize = NSUBEXPM;
+	if(p->startinst->gen != 0) {
+		for(ci = p->startinst; ci < p->startinst + p->len; ci++)
+			ci->gen = 0;
+	}
+
+	clist = lists;
+	clist->head = NULL;
+	clist->tail = &clist->head;
+	nlist = lists + 1;
+	nlist->head = NULL;
+	nlist->tail = &nlist->head;
+
+	pool = p->threads;
+	avail = NULL;
+	gen = matchgen = 0;
+
+	sp = str;
+	ep = NULL;
+	endc = '\0';
+	if(sem != NULL && msize > 0) {
+		if(sem->sp != NULL)
+			sp = sem->sp;
+		if(sem->ep != NULL && *sem->ep != '\0') {
+			ep = sem->ep;
+			endc = *sem->ep;
+			*sem->ep = '\0';
+		}
+	}
+
+	for(r = L'☺'; r != L'\0'; sp += i) {
+		i = mbtowc(&r, sp, MB_CUR_MAX);
+		gen++;
+		if(matchgen == 0) {
+			if(avail == NULL) {
+				assert(pool < p->threads + p->nthr);
+				t = pool++;
+			} else {
+				t = avail;
+				avail = avail->next;
+			}
+			t->i = p->startinst;
+			if(msize > 0)
+				memset(t->sem, 0, sizeof(Resub)*msize);
+			t->next = NULL;
+			t->gen = gen;
+			*clist->tail = t;
+			clist->tail = &t->next;
+		}
+		t = clist->head;
+		if(t == NULL)
+			break;
+		ci = t->i;
+Again:
+		if(ci->gen == gen)
+			goto Done;
+		ci->gen = gen;
+		switch(ci->op) {
+		case ORUNE:
+			if(r != ci->r)
+				goto Done;
+		case OANY: /* fallthrough */
+			next = t->next;
+			t->i = ci + 1;
+			t->next = NULL;
+			*nlist->tail = t;
+			nlist->tail = &t->next;
+			goto Next;
+		case OCLASS:
+		Class:
+			if(r < ci->r)
+				goto Done;
+			if(r > ci->r1) {
+				ci++;
+				goto Class;
+			}
+			next = t->next;
+			t->i = ci->a;
+			t->next = NULL;
+			*nlist->tail = t;
+			nlist->tail = &t->next;
+			goto Next;
+		case ONOTNL:
+			if(r != L'\n') {
+				ci++;
+				goto Again;
+			}
+			goto Done;
+		case OBOL:
+			if(sp == str || sp[-1] == '\n') {
+				ci++;
+				goto Again;
+			}
+			goto Done;
+		case OEOL:
+			if(r == L'\n' || (r == L'\0' && ep == NULL)) {
+				ci++;
+				goto Again;
+			}
+			goto Done;
+		case OJMP:
+			ci = ci->a;
+			goto Again;
+		case OSPLIT:
+			if(avail == NULL) {
+				assert(pool < p->threads + p->nthr);
+				next = pool++;
+			} else {
+				next = avail;
+				avail = avail->next;
+			}
+			next->i = ci->b;
+			if(msize > 0)
+				memcpy(next->sem, t->sem, sizeof(Resub)*msize);
+			next->next = t->next;
+			next->gen = t->gen;
+			t->next = next;
+			ci = ci->a;
+			goto Again;
+		case OSAVE:
+			if(ci->sub < msize)
+				t->sem[ci->sub].sp = sp;
+			ci++;
+			goto Again;
+		case OUNSAVE:
+			if(ci->sub == 0) {
+				matchgen = t->gen;
+				if(sem != NULL && msize > 0) {
+					memcpy(sem, t->sem, sizeof(Resub)*msize);
+					sem->ep = sp;
+				}
+				goto Done;
+			}
+			if(ci->sub < msize)
+				t->sem[ci->sub].ep = sp;
+			ci++;
+			goto Again;
+		Done:
+			next = t->next;
+			t->next = avail;
+			avail = t;
+		Next:
+			if(next == NULL)
+				break;
+			if(matchgen && next->gen > matchgen) {
+				*clist->tail = avail;
+				avail = next;
+				break;
+			}
+			t = next;
+			ci = t->i;
+			goto Again;
+		}
+		tmp = clist;
+		clist = nlist;
+		nlist = tmp;
+		nlist->head = NULL;
+		nlist->tail = &nlist->head;
+	}
+	if(ep != NULL)
+		*ep = endc;
+	return matchgen > 0 ? 1 : 0;
+}

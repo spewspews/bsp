@@ -3,6 +3,8 @@ CC=clang
 
 fibheaptest.o: ../bspfibheap.h
 
+newregexptest.o: ../newbspregexp.h
+
 all: avltest fibheaptest regexptest dijkstra prim
 
 clean:
