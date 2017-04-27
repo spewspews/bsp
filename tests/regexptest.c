@@ -1,5 +1,8 @@
 #include "../bspregexp.h"
 
+#include <errno.h>
+#include <string.h>
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,9 +30,13 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
+	setlocale(LC_ALL, "en_US.UTF-8");
+
 	re = regcomp(argv[1]);
-	if(re == NULL)
-		printf("?\n");
+	if(re == NULL) {
+		printf("regexp compilation returned NULL: %s\n", strerror(errno));
+		exit(1);
+	}
 
 	while(fgets(buf, sizeof(buf), stdin)) {
 		l = strlen(buf);

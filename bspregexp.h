@@ -319,6 +319,10 @@ regcomp1(char *regstr, int nl, int lit)
 	int regstrlen, maxthr;
 
 	regstrlen = mbstowcs(NULL, regstr, 0);
+	if(regstrlen == -1) {
+		regerror("invalid character encoding in regexp");
+		return NULL;
+	}
 	initplex(&plex, regstr, lit);
 	plex.nodes = calloc(sizeof(*plex.nodes), regstrlen*2);
 	if(plex.nodes == NULL)
