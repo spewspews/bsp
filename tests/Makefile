@@ -1,6 +1,8 @@
 CFLAGS=-Wall -Wpedantic -Wextra -O2 -std=c11 -g
 CC=clang
 
+fibheaptest.o: ../bspfibheap.h
+
 all: avltest fibheaptest regexptest dijkstra prim
 
 clean:

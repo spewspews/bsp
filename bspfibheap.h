@@ -197,6 +197,10 @@ DIAGNOSTICS
 #ifndef __BSP_FIBHEAP_H_INCLUDE
 #define __BSP_FIBHEAP_H_INCLUDE
 
+#ifdef __cpluscplus
+extern "C" {
+#endif
+
 typedef struct Fibheap Fibheap;
 typedef struct Fibnode Fibnode;
 typedef int (*Fibcmp)(Fibnode*, Fibnode*);
@@ -223,6 +227,10 @@ __BSP_FIBHEAP_SCOPE int      fibdeletemin(Fibheap*);
 __BSP_FIBHEAP_SCOPE void     fibdecreasekey(Fibheap*, Fibnode*);
 __BSP_FIBHEAP_SCOPE int      fibdelete(Fibheap*, Fibnode*);
 
+#ifdef __cpluscplus
+}
+#endif
+
 #endif // __BSP_AVL_H_INCLUDE
 
 #ifdef BSP_FIBHEAP_IMPLEMENTATION
@@ -243,14 +251,10 @@ __BSP_FIBHEAP_SCOPE
 Fibheap*
 fibinit(Fibheap *heap, Fibcmp cmp)
 {
-	heap->arr = BSP_FIBHEAP_CALLOC(10, sizeof(*heap->arr));
-	if(heap->arr == NULL) {
-		return NULL;
-	}
-	heap->arrlen = 10;
-
 	heap->cmp = cmp;
 	heap->min = NULL;
+	heap->arr = NULL;
+	heap->arrlen = 0;
 
 	return heap;
 }
@@ -346,13 +350,14 @@ resizearr(Fibheap *h, int rank)
 	Fibnode **a;
 	int alen;
 
-	a = h->arr;
-	alen = h->arrlen;
-	h->arrlen = 2 * rank * sizeof(*h->arr);
-	h->arr = BSP_FIBHEAP_CALLOC(h->arrlen, sizeof(*h->arr));
-	if(h->arr == NULL)
+	alen = 2*rank + 10;
+	a = BSP_FIBHEAP_CALLOC(alen, sizeof(*a));
+	if(a == NULL)
 		return -1;
-	memcpy(h->arr, a, alen*sizeof(*h->arr));
+	memcpy(a, h->arr, h->arrlen*sizeof(*a));
+	free(h->arr);
+	h->arr = a;
+	h->arrlen = alen;
 	return 0;
 }
 

@@ -233,6 +233,10 @@ __BSP_AVL_SCOPE Avl *avlprev(Avl*);
 __BSP_AVL_SCOPE Avl *avlmin(Avltree*);
 __BSP_AVL_SCOPE Avl *avlmax(Avltree*);
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __BSP_AVL_H_INCLUDE
 
 #ifdef BSP_AVL_IMPLEMENTATION
