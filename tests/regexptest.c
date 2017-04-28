@@ -1,3 +1,4 @@
+#define BSP_REGEXP_IMPLEMENTATION
 #include "../bspregexp.h"
 
 #include <errno.h>

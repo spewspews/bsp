@@ -229,7 +229,7 @@ __BSP_FIBHEAP_SCOPE int      fibdelete(Fibheap*, Fibnode*);
 }
 #endif
 
-#endif // __BSP_AVL_H_INCLUDE
+#endif // __BSP_FIBHEAP_H_INCLUDE
 
 #ifdef BSP_FIBHEAP_IMPLEMENTATION
 

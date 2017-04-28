@@ -1,27 +1,47 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <setjmp.h>
+/*
+Copyright (c) 2017 Benjamin Scher Purcell <benjapurcell@gmail.com>
+and is licensed for use under the terms found at
+https://github.com/spewspews/bsp/blob/master/LICENSE
+
+This is a regular expression implementation with dependencies on an ANSI C
+compatible malloc, calloc, and free routines.
+
+Do this:
+	#define BSP_REGEXP_IMPLEMENTATION
+before you include this file in *one* C file to create the implementation.
+
+// i.e. it should look like this:
+#include ...
+#include ...
+#include ...
+#define BSP_REGEXP_IMPLEMENTATION
+#include "bspregexp.h"
+
+You can #define BSP_REGEXP_STATIC before the #include to keep everything
+private to one compilation unit. And #define BSP_REGEXP_CALLOC,
+BSP_REGEXP_MALLOC, and BSP_REGEXP_FREE to avoid using using calloc,
+malloc, and free.
+*/
+
+#ifdef BSP_REGEXP_STATIC
+#define __BSP_REGEXP_SCOPE static
+#else
+#define __BSP_REGEXP_SCOPE
+#endif
+
+#ifndef __BSP_REGEXP_H_INCLUDE
+#define __BSP_REGEXP_H_INCLUDE
+
+#ifdef __cpluscplus
+extern "C" {
+#endif
+
 #include <wchar.h>
 
-enum {
-	OANY,
-	OBOL,
-	OCLASS,
-	OEOL,
-	OJMP,
-	ONOTNL,
-	ORUNE,
-	OSAVE,
-	OSPLIT,
-	OUNSAVE,
-};
-
 typedef struct Resub Resub;
-typedef struct Reinst Reinst;
 typedef struct Reprog Reprog;
 typedef struct Rethread Rethread;
+typedef struct Reinst Reinst;
 
 struct Resub
 {
@@ -36,6 +56,7 @@ struct Resub
 		wchar_t *rep;
 	};
 };
+
 struct Reprog
 {
 	Reinst *startinst;
@@ -45,16 +66,56 @@ struct Reprog
 	int nthr;
 };
 
-Reprog* regcomp(char*);
-Reprog* regcomplit(char*);
-Reprog* regcompnl(char*);
-void    regerror(char*);
-int     regexec(Reprog*, char*, Resub*, int);
-void	regsub(char*, char*, int, Resub*, int);
-int     rregexec(Reprog*, wchar_t*, Resub*, int);
-void    rregsub(wchar_t*, wchar_t*, int, Resub*, int);
+__BSP_REGEXP_SCOPE Reprog* regcomp(char*);
+__BSP_REGEXP_SCOPE Reprog* regcomplit(char*);
+__BSP_REGEXP_SCOPE Reprog* regcompnl(char*);
+__BSP_REGEXP_SCOPE void    regerror(char*);
+__BSP_REGEXP_SCOPE int     regexec(Reprog*, char*, Resub*, int);
+__BSP_REGEXP_SCOPE void    regsub(char*, char*, int, Resub*, int);
+__BSP_REGEXP_SCOPE int     rregexec(Reprog*, wchar_t*, Resub*, int);
+__BSP_REGEXP_SCOPE void    rregsub(wchar_t*, wchar_t*, int, Resub*, int);
+
+#ifdef __cpluscplus
+}
+#endif
+
+#endif // __BSP_REGEXP_H_INCLUDE
+
+#ifdef BSP_REGEXP_IMPLEMENTATION
+
+#ifndef BSP_REGEXP_CALLOC
+#include <stdlib.h>
+#define BSP_REGEXP_CALLOC calloc
+#endif
+
+#ifndef BSP_REGEXP_MALLOC
+#include <stdlib.h>
+#define BSP_REGEXP_MALLOC malloc
+#endif
+
+#ifndef BSP_REGEXP_FREE
+#include <stdlib.h>
+#define BSP_REGEXP_FREE free
+#endif
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <setjmp.h>
 
 enum {
+	OANY,
+	OBOL,
+	OCLASS,
+	OEOL,
+	OJMP,
+	ONOTNL,
+	ORUNE,
+	OSAVE,
+	OSPLIT,
+	OUNSAVE,
+
 	LANY = 0,
 	LBOL,
 	LCLASS,
@@ -351,18 +412,21 @@ regcomp1(char *regstr, int nl, int lit)
 	return reprog;
 }
 
+__BSP_REGEXP_SCOPE
 Reprog*
 regcomp(char *str)
 {
 	return regcomp1(str, 0, 0);
 }
 
+__BSP_REGEXP_SCOPE
 Reprog*
 regcomplit(char *str)
 {
 	return regcomp1(str, 0, 1);
 }
 
+__BSP_REGEXP_SCOPE
 Reprog*
 regcompnl(char *str)
 {
@@ -732,6 +796,7 @@ struct RethreadQ {
 	Rethread **tail;
 };
 
+__BSP_REGEXP_SCOPE
 int
 regexec(Reprog *p, char *str, Resub *sem, int msize)
 {
@@ -907,3 +972,5 @@ Again:
 		*ep = endc;
 	return matchgen > 0 ? 1 : 0;
 }
+
+#endif // BSP_REGEXP_IMPLEMENTATION
