@@ -97,7 +97,7 @@ struct Parselex {
 	char *regstr;
 	char *orig;
 	wchar_t rune;
-	wchar_t peek;
+	int peek;
 	int peeklex;
 	int done;
 	int literal;
@@ -505,7 +505,7 @@ lex(Parselex *l)
 	if(l->literal)
 		return l->peeklex = LRUNE;
 	switch(l->rune){
-	case 0:
+	case L'\0':
 		return l->peeklex = LEND;
 	case L'*':
 	case L'?':
@@ -872,7 +872,7 @@ Again:
 			if(ci->sub == 0) {
 				matchgen = t->gen;
 				if(sem != NULL && msize > 0) {
-					memcpy(sem, t->sem, sizeof(Resub)*msize);
+					memcpy(sem, t->sem, sizeof(*sem)*msize);
 					sem->ep = sp;
 				}
 				goto Done;

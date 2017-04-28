@@ -6,23 +6,21 @@ https://github.com/spewspews/bsp/blob/master/LICENSE
 This is a fibonacci heap implementation with dependencies on an ANSI C
 compatible calloc and free routines.
 
-Simply '#include "bspfibheap.h"' anywhere you wish to use it
-and in only one file do this:
+Do this:
 	#define BSP_FIBHEAP_IMPLEMENTATION
-before the '#include "bspfibheap.h"' line.
+before you include this file in *one* C file to create the implementation.
 
-If you would like the implementation to remain static to one compilation
-unit also do this:
-	#define BSP_FIBHEAP_STATIC
-before the '#include "bspfibheap.h"' line.
+// i.e. it should look like this:
+#include ...
+#include ...
+#include ...
+#define BSP_FIBHEAP_IMPLEMENTATION
+#include "bspfibheap.h"
 
-If you would like to provide your own calloc routine do this:
-	#define BSP_FIBHEAP_CALLOC mycalloc
-before the '#include "bspfibheap.h"' line.
+You can #define BSP_FIBHEAP_STATIC before the #include to keep everything
+private to one compilation unit. And #define BSP_FIBHEAP_CALLOC, and
+BSP_FIBHEAP_FREE to avoid using using calloc, and free.
 
-If you would like to provide your own calloc routine do this:
-	#define BSP_FIBHEAP_CALLOC myfree
-before the '#include "bspfibheap.h"' line.
 
 FIBHEAP(3)                 Library Functions Manual                 FIBHEAP(3)
 

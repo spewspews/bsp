@@ -4,15 +4,20 @@ and is licensed for use under the terms found at
 https://github.com/spewspews/bsp/blob/master/LICENSE
 
 This is a no memory allocation balanced binary tree with no dependencies.
-Simply '#include "bspavl.h"' the file anywhere you wish to use it and in one file
-do this:
-	#define BSP_AVL_IMPLEMENTATION
-before the '#include "bspavl.h"' line.
 
-If you would like the implementation to remain static to one compilation
-unit also do this:
-	#define BSP_AVL_STATIC
-before the '#include "bspavl.h"' line.
+Do this:
+	#define BSP_AVL_IMPLEMENTATION
+before you include this file in *one* C file to create the implementation.
+
+// i.e. it should look like this:
+#include ...
+#include ...
+#include ...
+#define BSP_AVL_IMPLEMENTATION
+#include "bspavl.h"
+
+You can #define BSP_AVL_STATIC before the #include to keep everything
+private to one compilation unit.
 
 AVL(3)                     Library Functions Manual                     AVL(3)
 
