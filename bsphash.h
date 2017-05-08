@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct Hash Hash;
 typedef struct Hashval Hashval;
 
@@ -5,7 +8,7 @@ struct Hashval {
 	void *key;
 	size_t keysize;
 	Hashval *next;
-}
+};
 
 enum {
 	NBKT = 1031,
@@ -13,12 +16,13 @@ enum {
 
 struct Hash {
 	Hashval *bkt[NBKT];
-}
+};
 
 Hash*
-bsphashinit(Hash *h)
+hashinit(Hash *h)
 {
 	memset(h->bkt, 0, sizeof(h->bkt));
+	return h;
 }
 
 static unsigned long
@@ -36,7 +40,7 @@ djb2(void *key, size_t keysize)
 Hashval*
 hashinsert(Hash *map, Hashval *k)
 {
-	Hashval **hp, *h, *next;
+	Hashval **hp, *h;
 	unsigned long hash;
 
 	hash = djb2(k->key, k->keysize) % NBKT;
@@ -58,7 +62,7 @@ hashlookup(Hash *map, Hashval *k) {
 	Hashval *h;
 	unsigned long hash;
 
-	hash = djb2(newhv->key, newhv->keysize) % NBKT;
+	hash = djb2(k->key, k->keysize) % NBKT;
 	for(h = map->bkt[hash]; h != NULL; h = h->next) {
 		if(h->keysize == k->keysize && memcmp(h->key, k->key, h->keysize) == 0)
 			break;
