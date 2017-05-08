@@ -85,18 +85,6 @@ edgecmp(Fibnode *a, Fibnode *b)
 }
 
 void
-insertedges(Fibheap *pq, Node *s)
-{
-	Edge *e;
-
-	for(e = s->edges; e != NULL; e = e->next) {
-		if(e->node->intree)
-			continue;
-		fibinsert(pq, &e->fibnode);
-	}
-}
-
-void
 addedge(int s, int d, int dist)
 {
 	Edge *e;
@@ -131,6 +119,18 @@ reallocnodes(int nnodes)
 	nodes.a = calloc(nodes.len, sizeof(*nodes.a));
 	for(ni = nodes.a; ni < nodes.a+nodes.len; ni++)
 		ni->etail = &ni->edges;
+}
+
+void
+insertedges(Fibheap *pq, Node *s)
+{
+	Edge *e;
+
+	for(e = s->edges; e != NULL; e = e->next) {
+		if(e->node->intree)
+			continue;
+		fibinsert(pq, &e->fibnode);
+	}
 }
 
 int
