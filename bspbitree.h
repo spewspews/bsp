@@ -15,6 +15,12 @@ bitinit(Bitree *tree, size_t n)
 }
 
 void
+bitfree(Bitree *tree)
+{
+	free(tree->arr);
+}
+
+void
 bitupdate(Bitree *tree, size_t i, int v)
 {
 	i++;
