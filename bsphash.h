@@ -29,9 +29,10 @@ static unsigned long
 djb2(void *key, size_t keysize)
 {
 	char *s, *sp;
-	unsigned long hash = 5831;
+	unsigned long hash;
 
 	s = (char*)key;
+	hash = 5381;
 	for(sp = s; sp < s + keysize; sp++)
 		hash = ((hash << 5) + hash) ^ *sp;
 	return hash;
