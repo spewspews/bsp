@@ -59,7 +59,8 @@ hashinsert(Hash *map, Hashval *k)
 }
 
 Hashval*
-hashlookup(Hash *map, Hashval *k) {
+hashlookup(Hash *map, Hashval *k)
+{
 	Hashval *h;
 	unsigned long hash;
 
