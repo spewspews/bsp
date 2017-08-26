@@ -270,10 +270,8 @@ concat(Fibnode *h1, Fibnode *h2)
 {
 	Fibnode *prev;
 
-	if(h1 == NULL)
-		return h2;
-	if(h2 == NULL)
-		return h1;
+	if(h1 == NULL) return h2;
+	if(h2 == NULL) return h1;
 
 	h1->prev->next = h2;
 	h2->prev->next = h1;
@@ -287,10 +285,8 @@ concat(Fibnode *h1, Fibnode *h2)
 static Fibnode*
 meld(Fibnode *h1, Fibnode *h2, Fibcmp cmp)
 {
-	if(h1 == NULL)
-		return h2;
-	if(h2 == NULL)
-		return h1;
+	if(h1 == NULL) return h2;
+	if(h2 == NULL) return h1;
 
 	concat(h1, h2);
 	return cmp(h1, h2) <= 0 ? h1 : h2;
@@ -336,10 +332,8 @@ link1(Fibnode *x, Fibnode *y)
 static Fibnode*
 link(Fibnode *x, Fibnode *y, Fibcmp cmp)
 {
-	if(cmp(x, y) <= 0)
-		return link1(x, y);
-	else
-		return link1(y, x);
+	if(cmp(x, y) <= 0) return link1(x, y);
+	else               return link1(y, x);
 }
 
 static int
@@ -350,8 +344,7 @@ resizearr(Fibheap *h, int rank)
 
 	alen = 2*rank + 10;
 	a = BSP_FIBHEAP_CALLOC(alen, sizeof(*a));
-	if(a == NULL)
-		return -1;
+	if(a == NULL) return -1;
 	memcpy(a, h->arr, h->arrlen*sizeof(*a));
 	free(h->arr);
 	h->arr = a;
@@ -365,11 +358,7 @@ arraylink(Fibheap *h, Fibnode *n)
 	Fibnode *m;
 
 	for(;;) {
-		if(h->arrlen <= n->rank) {
-			if(resizearr(h, n->rank) == -1)
-				return -1;
-		}
-
+		if(h->arrlen <= n->rank && resizearr(h, n->rank) == -1) return -1;
 		m = h->arr[n->rank];
 		if(m == NULL) {
 			h->arr[n->rank] = n;
@@ -395,10 +384,8 @@ linkheaps(Fibheap *h, Fibnode *head)
 		n->next = n;
 		n->prev = n;
 		rank = arraylink(h, n);
-		if(rank == -1)
-			return -1;
-		if(maxrank < rank)
-			maxrank = rank;
+		if(rank == -1) return -1;
+		if(maxrank < rank) maxrank = rank;
 		n = next;
 	} while(n != head);
 
@@ -412,8 +399,7 @@ meldheaps(Fibheap *h, int maxrank)
 
 	h->min = NULL;
 	for(ni = h->arr; ni <= h->arr + maxrank; ni++) {
-		if(*ni != NULL)
-			h->min = meld(h->min, *ni, h->cmp);
+		if(*ni != NULL) h->min = meld(h->min, *ni, h->cmp);
 	}
 }
 
@@ -423,8 +409,7 @@ linkstep(Fibheap *h, Fibnode *head)
 	int maxrank;
 
 	maxrank = linkheaps(h, head);
-	if(maxrank == -1)
-		return -1;
+	if(maxrank == -1) return -1;
 	meldheaps(h, maxrank);
 	return 0;
 }
@@ -435,8 +420,7 @@ removenode(Fibnode *n)
 	Fibnode *next;
 
 	n->p = NULL;
-	if(n->next == n)
-		return NULL;
+	if(n->next == n) return NULL;
 
 	next = n->next;
 	n->next->prev = n->prev;
@@ -469,8 +453,7 @@ fibdeletemin(Fibheap *h)
 	Fibnode *head, *min;
 
 	min = h->min;
-	if(min == NULL)
-		return 0;
+	if(min == NULL) return 0;
 
 	head = concat(removenode(min), detachchildren(min));
 	if(head == NULL) {
@@ -500,8 +483,7 @@ cascadingcut(Fibheap *h, Fibnode *n)
 Loop:
 	p = n->p;
 	cut(h, n);
-	if(p->p == NULL)
-		return;
+	if(p->p == NULL) return;
 
 	if(p->mark) {
 		n = p;
@@ -520,8 +502,7 @@ fibdecreasekey(Fibheap *h, Fibnode *n)
 		return;
 	}
 
-	if(h->cmp(n->p, n) < 0)
-		return;
+	if(h->cmp(n->p, n) < 0) return;
 
 	cascadingcut(h, n);
 }
@@ -530,11 +511,9 @@ __BSP_FIBHEAP_SCOPE
 int
 fibdelete(Fibheap *h, Fibnode *n)
 {
-	if(h->min == n)
-		return fibdeletemin(h);
+	if(h->min == n) return fibdeletemin(h);
 
-	if(n->p != NULL)
-		cascadingcut(h, n);
+	if(n->p != NULL) cascadingcut(h, n);
 
 	removenode(n);
 	concat(h->min, detachchildren(n));
